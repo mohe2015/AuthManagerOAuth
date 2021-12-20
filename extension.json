@@ -22,7 +22,14 @@
 		"AuthManagerOAuthVandalizeEachPage": {
 			"description": "Write 'AuthManagerOAuth was here' on each page",
 			"value": false
+		},
+		"AuthManagerOAuthConfig": {
+			"description": "See GenericProvider constructor at https://oauth2-client.thephpleague.com/usage/ for the format.",
+			"value": ""
 		}
+	},
+	"ConfigRegistry": {
+		"authmanageroauth": "GlobalVarConfig::newInstance"
 	},
 	"HookHandlers": {
 		"AuthManagerOAuthHooks": {
