@@ -16,5 +16,8 @@
 			"phpcbf"
 		],
 		"phpcs": "phpcs -sp --cache"
+	},
+	"require": {
+		"league/oauth2-client": "^2.6"
 	}
 }
