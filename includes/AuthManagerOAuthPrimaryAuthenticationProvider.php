@@ -236,6 +236,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				]);
 		
 				$resourceOwner = $this->provider->getResourceOwner($accessToken);
+
+				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
+
+				// TODO FIXME goddamit we need to select on the id so we need an index on it :( - so we can't use the prefs thing
 	
 				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
