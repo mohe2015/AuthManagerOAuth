@@ -5,6 +5,8 @@
 		]
 	},
 	"authmanageroauth-desc": "This is an example extension",
-	"authmanageroauth-test": "Login with GitHub (don't fill out above)",
+	"authmanageroauth-test": "CHANGEME",
+	"authmanageroauth-login": "Login with GitHub (don't fill out above)",
+	"authmanageroauth-create": "Register with GitHub (only fill out username)",
 	"authmanageroauth-error": "Error: $1"
 }

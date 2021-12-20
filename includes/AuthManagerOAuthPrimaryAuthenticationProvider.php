@@ -41,7 +41,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
 		wfDebugLog( 'AuthManagerOAuth1', var_export($options, true) );
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
-			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-test'), wfMessage('authmanageroauth-test')) ];
+			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-login'), wfMessage('authmanageroauth-login')) ];
+		}
+		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE ) {
+			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-create'), wfMessage('authmanageroauth-create')) ];
 		}
 		return [];
 	}
@@ -80,8 +83,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		
 				// We have an access token, which we may use in authenticated
 				// requests against the service provider's API.
-				echo 'Access Token: ' . $accessToken->getToken() . "<br>";
-				echo 'Refresh Token: ' . $accessToken->getRefreshToken() . "<br>";
+				//echo 'Access Token: ' . $accessToken->getToken() . "<br>";
+				//echo 'Refresh Token: ' . $accessToken->getRefreshToken() . "<br>";
 				//echo 'Expired in: ' . $accessToken->getExpires() . "<br>";
 				//echo 'Already expired? ' . ($accessToken->hasExpired() ? 'expired' : 'not expired') . "<br>";
 		
@@ -89,7 +92,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				// resource owner.
 				$resourceOwner = $this->provider->getResourceOwner($accessToken);
 		
-				var_export($resourceOwner->toArray());
+				//var_export($resourceOwner->toArray());
+
 		/*
 				// The provider provides a way to get an authenticated API request for
 				// the service, using the access token; it returns an object conforming
@@ -101,17 +105,17 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				);
 		*/
 				// TODO FIXME username
-				return \MediaWiki\Auth\AuthenticationResponse::newPass();
+				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
-		}		
+		}
 	}
 
 	function testUserExists($username, $flags = User::READ_NORMAL) {
-		return true;
+		return false;
 	}
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
@@ -129,6 +133,57 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function beginPrimaryAccountCreation($user, $creator, array $reqs) {
-		return \MediaWiki\Auth\AuthenticationResponse::newFail('bruh2');
+		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
+		if ($req !== null) {
+			$authorizationUrl = $this->provider->getAuthorizationUrl([
+				'redirect_uri' => $req->returnToUrl
+			]);
+
+			// TODO FIXME do this the mediawiki way
+			// Get the state generated for you and store it to the session.
+			$_SESSION['oauth2state'] = $this->provider->getState();
+
+			// TODO FIXME maybe create new req THIS SHOULD BE THE NEXT STEP I THINK
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest()], $authorizationUrl, null);
+		} else {
+			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+		}
+	}
+
+	function continuePrimaryAccountCreation($user, $creator, array $reqs) {
+		wfDebugLog( 'AuthManagerOAuth3', var_export($reqs, true) );
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
+		if ($req !== null) {
+			try {
+				// TODO FIXME validate state
+
+				// Try to get an access token using the authorization code grant.
+				$accessToken = $this->provider->getAccessToken('authorization_code', [
+					'code' => $req->accessToken
+				]);
+		
+				$resourceOwner = $this->provider->getResourceOwner($accessToken);
+		
+				var_export($resourceOwner->toArray());
+
+		/*
+				// The provider provides a way to get an authenticated API request for
+				// the service, using the access token; it returns an object conforming
+				// to Psr\Http\Message\RequestInterface.
+				$request = $provider->getAuthenticatedRequest(
+					'GET',
+					'https://service.example.com/resource',
+					$accessToken
+				);
+		*/
+				// TODO FIXME username
+				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
+			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
+				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
+			}
+		} else {
+			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+		}
 	}
 }
