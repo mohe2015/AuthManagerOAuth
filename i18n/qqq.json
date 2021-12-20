@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Your Name"
+		]
+	},
+	"authmanageroauth-desc": "{{desc|name=AuthManagerOAuth|url=https://www.mediawiki.org/wiki/Extension:AuthManagerOAuth}}"
+}

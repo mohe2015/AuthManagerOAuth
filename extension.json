@@ -1,0 +1,52 @@
+{
+	"name": "AuthManagerOAuth",
+	"author": [
+		"Moritz Hedtke"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:AuthManagerOAuth",
+	"descriptionmsg": "authmanageroauth-desc",
+	"license-name": "GPL-2.0-or-later",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.35.0"
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\AuthManagerOAuth\\": "includes/"
+	},
+	"config": {
+		"AuthManagerOAuthEnableFoo": {
+			"description": "Enable the Foo feature.",
+			"value": true
+		},
+		"AuthManagerOAuthVandalizeEachPage": {
+			"description": "Write 'AuthManagerOAuth was here' on each page",
+			"value": false
+		}
+	},
+	"HookHandlers": {
+		"AuthManagerOAuthHooks": {
+			"class": "MediaWiki\\Extension\\AuthManagerOAuth\\Hooks"
+		}
+	},
+	"Hooks": {
+		"BeforePageDisplay": "AuthManagerOAuthHooks"
+	},
+	"MessagesDirs": {
+		"AuthManagerOAuth": [
+			"i18n"
+		]
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "AuthManagerOAuth/resources"
+	},
+	"ResourceModules": {
+		"ext.authManagerOAuth": {
+			"dependencies": [],
+			"messages": [],
+			"styles": [],
+			"scripts": []
+		}
+	},
+	"manifest_version": 2
+}
