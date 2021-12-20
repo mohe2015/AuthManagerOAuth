@@ -17,18 +17,20 @@
  * @file
  */
 
-/*
-$wgAuthManagerAutoConfig['primaryauth'] = [
-	\MediaWiki\Extension\AuthManagerOAuth\AuthManagerOAuthPrimaryAuthenticationProvider::class => [
-		'class' => \MediaWiki\Extension\AuthManagerOAuth\AuthManagerOAuthPrimaryAuthenticationProvider::class,
-		'sort' => -1000
-	]
-];
-*/
-
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
+
+	function __construct() {
+		$provider = new \League\OAuth2\Client\Provider\GenericProvider([
+			'clientId'                => 'XXXXXX',
+			'clientSecret'            => 'XXXXXX',
+			'redirectUri'             => 'https://my.example.com/your-redirect-url/',
+			'urlAuthorize'            => 'https://service.example.com/authorize',
+			'urlAccessToken'          => 'https://service.example.com/token',
+			'urlResourceOwnerDetails' => 'https://service.example.com/resource'
+		]);
+	}
 
 	function getAuthenticationRequests($action, array $options) {
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
@@ -36,50 +38,6 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		}
 		return [];
 	}
-	/*
-	AuthManagerOAuth] MediaWiki\Auth\ButtonAuthenticationRequest::__set_state(array(
-'name' => 'zzzz',
-'label' =>
-Message::__set_state(array(
-'interface' => true,
-'language' => false,
-'key' => 'authmanageroauth-test',
-'keysToTry' =>
-array (
-0 => 'authmanageroauth-test',
-),
-'parameters' =>
-array (
-),
-'useDatabase' => true,
-'contextPage' => NULL,
-'content' => NULL,
-'message' => 'Login with GitHub (don\'t fill out above)',
-)),
-'help' =>
-Message::__set_state(array(
-'interface' => true,
-'language' => false,
-'key' => 'authmanageroauth-test',
-'keysToTry' =>
-array (
-0 => 'authmanageroauth-test',
-),
-'parameters' =>
-array (
-),
-'useDatabase' => true,
-'contextPage' => NULL,
-'content' => NULL,
-'message' => NULL,
-)),
-'action' => 'login',
-'required' => 2,
-'returnToUrl' => 'http://localhost/index.php?title=Special:UserLogin/return&wpLoginToken=95c0c73be2baf368350305784f7b374361c0c5ad%2B%5C&returnto=Main+Page',
-'username' => NULL,
-'zzzz' => true,
-))
-*/
 
 	function beginPrimaryAuthentication(array $reqs) {
 		$fieldInfo = \MediaWiki\Auth\AuthenticationRequest::mergeFieldInfo($reqs);
