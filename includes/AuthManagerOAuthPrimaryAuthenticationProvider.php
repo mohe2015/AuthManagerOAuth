@@ -22,29 +22,36 @@ namespace MediaWiki\Extension\AuthManagerOAuth;
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
 	function __construct() {
-		$provider = new \League\OAuth2\Client\Provider\GenericProvider([
-			'clientId'                => 'XXXXXX',
+		$this->provider = new \League\OAuth2\Client\Provider\GenericProvider([
+			'clientId'                => '0a8472b7e0d16ac5e998',
 			'clientSecret'            => 'XXXXXX',
-			'redirectUri'             => 'https://my.example.com/your-redirect-url/',
-			'urlAuthorize'            => 'https://service.example.com/authorize',
-			'urlAccessToken'          => 'https://service.example.com/token',
-			'urlResourceOwnerDetails' => 'https://service.example.com/resource'
+			'urlAuthorize'            => 'https://github.com/login/oauth/authorize',
+			'urlAccessToken'          => 'https://github.com/login/oauth/access_token',
+			'urlResourceOwnerDetails' => 'https://api.github.com/user'
 		]);
 	}
 
 	function getAuthenticationRequests($action, array $options) {
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
-			return [ new \MediaWiki\Auth\ButtonAuthenticationRequest('zzzz', wfMessage('authmanageroauth-test'), wfMessage('authmanageroauth-test'), \MediaWiki\Auth\AuthenticationRequest::PRIMARY_REQUIRED) ];
+			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-test'), wfMessage('authmanageroauth-test')) ];
 		}
 		return [];
 	}
 
+	// AuthenticationRequest has returnToUrl
 	function beginPrimaryAuthentication(array $reqs) {
-		$fieldInfo = \MediaWiki\Auth\AuthenticationRequest::mergeFieldInfo($reqs);
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		//wfDebugLog( 'AuthManagerOAuth', var_export($reqs, true) );
 		//wfDebugLog( 'AuthManagerOAuth', var_export($fieldInfo, true) );
-		if (isset($fieldInfo['zzzz'])) {
-			return \MediaWiki\Auth\AuthenticationResponse::newRedirect($reqs, 'https://example.org', null);
+		if ($req !== null) {
+			$authorizationUrl = $this->provider->getAuthorizationUrl([
+				'redirect_uri' => $req->returnToUrl
+			]);
+
+			// Get the state generated for you and store it to the session.
+			$_SESSION['oauth2state'] = $this->provider->getState();
+
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect($reqs, $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
