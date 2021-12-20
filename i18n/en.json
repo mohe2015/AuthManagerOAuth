@@ -4,5 +4,6 @@
 			"Your Name"
 		]
 	},
-	"authmanageroauth-desc": "This is an example extension"
+	"authmanageroauth-desc": "This is an example extension",
+	"authmanageroauth-test": "Login with GitHub (don't fill out above)"
 }

@@ -48,5 +48,13 @@
 			"scripts": []
 		}
 	},
+	"AuthManagerAutoConfig": {
+        "primaryauth": {
+            "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider": {
+                "class": "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider",
+				"sort": -10000
+            }
+        }
+    },
 	"manifest_version": 2
 }
