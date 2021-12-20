@@ -24,7 +24,7 @@ use MediaWiki\Auth\ButtonAuthenticationRequest;
 class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
 
     function __construct(\Message $label, \Message $help) {
-        parent::__construct('oauthmanageroauth', $label, $help, \MediaWiki\Auth\AuthenticationRequest::PRIMARY_REQUIRED);
+        parent::__construct('oauthmanageroauth', $label, $help, \MediaWiki\Auth\AuthenticationRequest::REQUIRED);
 
     }
 }

@@ -38,17 +38,18 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function getAuthenticationRequests($action, array $options) {
+		wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
+		wfDebugLog( 'AuthManagerOAuth1', var_export($options, true) );
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
 			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-test'), wfMessage('authmanageroauth-test')) ];
 		}
-		wfDebugLog( 'AuthManagerOAuth', var_export($action, true) );
 		return [];
 	}
 
 	// AuthenticationRequest has returnToUrl
 	function beginPrimaryAuthentication(array $reqs) {
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
-		//wfDebugLog( 'AuthManagerOAuth', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
 		if ($req !== null) {
 			$authorizationUrl = $this->provider->getAuthorizationUrl([
 				'redirect_uri' => $req->returnToUrl
@@ -58,15 +59,15 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			// Get the state generated for you and store it to the session.
 			$_SESSION['oauth2state'] = $this->provider->getState();
 
-			// TODO FIXME maybe create new req
-			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([$req], $authorizationUrl, null);
+			// TODO FIXME maybe create new req THIS SHOULD BE THE NEXT STEP I THINK
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest()], $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
 	}
 
 	function continuePrimaryAuthentication(array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth3', var_export($reqs, true) );
 
 		try {
 
@@ -109,11 +110,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
-		wfDebugLog( 'AuthManagerOAuth', var_export($req, true) );
-		return \StatusValue::newFatal('dsfsdf');
+		wfDebugLog( 'AuthManagerOAuth4', var_export($req, true) );
+		return \StatusValue::newGood('dsfsdf');
 	}
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
+		wfDebugLog( 'AuthManagerOAuth5', var_export($req, true) );
 
 	}
 
