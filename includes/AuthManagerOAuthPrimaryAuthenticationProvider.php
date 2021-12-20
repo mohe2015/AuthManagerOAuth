@@ -41,6 +41,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
 			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-test'), wfMessage('authmanageroauth-test')) ];
 		}
+		wfDebugLog( 'AuthManagerOAuth', var_export($action, true) );
 		return [];
 	}
 
@@ -57,7 +58,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			// Get the state generated for you and store it to the session.
 			$_SESSION['oauth2state'] = $this->provider->getState();
 
-			return \MediaWiki\Auth\AuthenticationResponse::newRedirect($reqs, $authorizationUrl, null);
+			// TODO FIXME maybe create new req
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([$req], $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
@@ -103,10 +105,11 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function testUserExists($username, $flags = User::READ_NORMAL) {
-		return false;
+		return true;
 	}
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
+		wfDebugLog( 'AuthManagerOAuth', var_export($req, true) );
 		return \StatusValue::newFatal('dsfsdf');
 	}
 
@@ -115,7 +118,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function accountCreationType() {
-		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_NONE;
+		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_CREATE;
 	}
 
 	function beginPrimaryAccountCreation($user, $creator, array $reqs) {
