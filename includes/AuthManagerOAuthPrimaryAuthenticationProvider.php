@@ -46,6 +46,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE ) {
 			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-create'), wfMessage('authmanageroauth-create')) ];
 		}
+		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LINK ) {
+			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-link'), wfMessage('authmanageroauth-link')) ];
+		}
+		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ) {
+			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-delete'), wfMessage('authmanageroauth-delete')) ];
+		}
 		return [];
 	}
 
@@ -104,7 +110,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					$accessToken
 				);
 		*/
-				// TODO FIXME username
+				// TODO FIXME this currently uses the github username but we want to use the account that is actually linked with that
+
 				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
@@ -120,16 +127,27 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
 		wfDebugLog( 'AuthManagerOAuth4', var_export($req, true) );
-		return \StatusValue::newGood('dsfsdf');
+		return \StatusValue::newGood();
 	}
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
 		wfDebugLog( 'AuthManagerOAuth5', var_export($req, true) );
 
+		if ($req->action === AuthManager::ACTION_REMOVE) {
+			$req->username;
+			//          $dbw = $this->loadBalancer->getConnectionRef( DB_PRIMARY );
+		}
+
+		// https://www.mediawiki.org/wiki/Manual:User_properties_table
+		// https://www.mediawiki.org/wiki/Manual:User_preferences
+		// TODO can we enforce that the user can't change the value?
+		// $wgHiddenPrefs[] = 'minordefault';
+		// https://www.mediawiki.org/wiki/Manual:Hooks/GetPreferences
+		// https://www.mediawiki.org/wiki/Manual:UserOptions.php
 	}
 
 	function accountCreationType() {
-		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_CREATE;
+		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_LINK;
 	}
 
 	function beginPrimaryAccountCreation($user, $creator, array $reqs) {
@@ -178,6 +196,47 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				);
 		*/
 				// TODO FIXME username
+				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
+			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
+				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
+			}
+		} else {
+			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+		}
+	}
+
+	function beginPrimaryAccountLink($user, array $reqs) {
+		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
+		if ($req !== null) {
+			$authorizationUrl = $this->provider->getAuthorizationUrl([
+				'redirect_uri' => $req->returnToUrl
+			]);
+
+			// TODO FIXME do this the mediawiki way
+			// Get the state generated for you and store it to the session.
+			$_SESSION['oauth2state'] = $this->provider->getState();
+
+			// TODO FIXME maybe create new req THIS SHOULD BE THE NEXT STEP I THINK
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest()], $authorizationUrl, null);
+		} else {
+			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+		}
+	}
+
+	function continuePrimaryAccountLink($user, array $reqs) {
+		wfDebugLog( 'AuthManagerOAuth3', var_export($reqs, true) );
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
+		if ($req !== null) {
+			try {
+				// TODO FIXME validate state
+
+				$accessToken = $this->provider->getAccessToken('authorization_code', [
+					'code' => $req->accessToken
+				]);
+		
+				$resourceOwner = $this->provider->getResourceOwner($accessToken);
+	
 				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));

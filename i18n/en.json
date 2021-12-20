@@ -8,5 +8,6 @@
 	"authmanageroauth-test": "CHANGEME",
 	"authmanageroauth-login": "Login with GitHub (don't fill out above)",
 	"authmanageroauth-create": "Register with GitHub (only fill out username)",
+	"authmanageroauth-link": "Link with GitHub",
 	"authmanageroauth-error": "Error: $1"
 }
