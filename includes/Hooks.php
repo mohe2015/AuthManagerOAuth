@@ -34,4 +34,11 @@ class Hooks implements \MediaWiki\Hook\BeforePageDisplayHook {
 		}
 	}
 
+	public static function onGetPreferences( $user, &$preferences ) {
+		$preferences['authmanageroauth-pref-userid'] = [
+			'type' => 'text',
+			'label-message' => 'authmanageroauth-userid',
+			'section' => 'personal/info',
+		];
+	}
 }

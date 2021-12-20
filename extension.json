@@ -37,7 +37,8 @@
 		}
 	},
 	"Hooks": {
-		"BeforePageDisplay": "AuthManagerOAuthHooks"
+		"BeforePageDisplay": "AuthManagerOAuthHooks",
+		"GetPreferences": "AuthManagerOAuthHooks"
 	},
 	"MessagesDirs": {
 		"AuthManagerOAuth": [
@@ -64,5 +65,6 @@
             }
         }
     },
+	"HiddenPrefs": ["authmanageroauth-pref-userid"],
 	"manifest_version": 2
 }
