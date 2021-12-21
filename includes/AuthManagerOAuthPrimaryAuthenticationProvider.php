@@ -64,7 +64,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$reqs = [];
 			foreach ($result as $obj) {
 				wfDebugLog( 'YYYYY', var_export($obj, true) );
-				$reqs[] = new OAuthAuthenticationRequest('', wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
+				$req = new OAuthAuthenticationRequest($obj->amoa_provider, wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
+				$req->resourceOwnerId = $obj->amoa_remote_user;
+				$reqs[] = $req;
 			}
 			return $reqs;
 		}
@@ -77,15 +79,35 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
 		wfDebugLog( 'UUUUUUU', var_export($req, true) );
-		//return \StatusValue::newGood();
-		return \StatusValue::newFail();
+
+		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
+			$req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE) {
+			return \StatusValue::newGood();
+		}
+		return \StatusValue::newGood('ignored');
+
+		//return \StatusValue::newGood('ignored');
+		//return \StatusValue::newFatal();
 	}
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
 		wfDebugLog( 'AuthManagerOAuth5', var_export($req, true) );
 
-		if ($req->action === AuthManager::ACTION_REMOVE) {
-			$req->username;
+		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
+			$req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE) {
+			
+			$user = \User::newFromName( $req->username );
+			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+			$dbr = $lb->getConnectionRef( DB_PRIMARY );
+			$result = $dbr->delete(
+				'authmanageroauth_linked_accounts',
+				[
+					'amoa_local_user' => $user->getId(),
+					'amoa_provider' => $req->provider_name,
+					'amoa_remote_user' => $req->resourceOwnerId,
+				],
+				__METHOD__,
+			);
 		}
 	}
 
@@ -202,15 +224,6 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 				$dbr = $lb->getConnectionRef( DB_PRIMARY );
-				/*$result = $dbr->insert(
-					'authmanageroauth_linked_accounts',
-					[
-						'amoa_local_user' => $user->getId(),
-						'amoa_provider' => $req->provider_name,
-						'amoa_remote_user' => $resourceOwner->getId(),
-					],
-					__METHOD__,
-				);*/
 
 				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
