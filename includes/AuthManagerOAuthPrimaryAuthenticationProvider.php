@@ -227,7 +227,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 				$result = $dbr->select(
 					'authmanageroauth_linked_accounts',
-					[ 'amoa_provider', 'amoa_remote_user' ],
+					[ 'amoa_provider', 'amoa_remote_user', 'amoa_local_user' ],
 					[ 'amoa_provider' => $req->provider_name, 'amoa_remote_user' => $resourceOwner->getId() ],
 					__METHOD__,
 	
@@ -236,19 +236,30 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				foreach ($result as $obj) {
 					// TODO FIXME I think we need something else here
 					wfDebugLog( 'YYYYY', var_export($obj, true) );
-					$req = new OAuthAuthenticationRequest($obj->amoa_provider, wfMessage('authmanageroauth-login', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-login', $obj->amoa_provider, $obj->amoa_remote_user));
+
+					// THIS DOESNT WORK - surprise
+					$user = \User::newFromId($obj->amoa_local_user);
+
+					$req = new OAuthAuthenticationRequest($obj->amoa_local_user, wfMessage('authmanageroauth-choose', $user->getName()), wfMessage('authmanageroauth-choose', $user->getName()));
 					$req->resourceOwnerId = $obj->amoa_remote_user;
+					$req->username = $user->getName(); // TODO FIXME maybe do all this stuff with the userid because it's more stable?
 					$reqs[] = $req;
 				}
-				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose'));
+				wfDebugLog( 'BBBBBBB', var_export($reqs, true) );
 
+				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose'));
 
 				//return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
 		} else {
-			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+			$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
+			if ($req !== null) {
+					return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
+			} else {
+				return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+			}
 		}
 	}
 

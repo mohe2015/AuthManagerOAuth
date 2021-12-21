@@ -9,5 +9,6 @@
 	"authmanageroauth-create": "Register with $1 (only fill out username)",
 	"authmanageroauth-link": "Link with $1",
 	"authmanageroauth-remove": "Unlink $1 account $2",
+	"authmanageroauth-choose": "Login as $1",
 	"authmanageroauth-error": "Error: $1"
 }
