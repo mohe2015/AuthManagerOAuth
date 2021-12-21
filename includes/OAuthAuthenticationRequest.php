@@ -23,8 +23,8 @@ use MediaWiki\Auth\ButtonAuthenticationRequest;
 
 class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
 
-    function __construct(\Message $label, \Message $help) {
-        parent::__construct('oauthmanageroauth', $label, $help, true);
+    function __construct($id, \Message $label, \Message $help) {
+        parent::__construct("oauthmanageroauth-$id", $label, $help, true);
 
     }
 }

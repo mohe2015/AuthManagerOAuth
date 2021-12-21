@@ -43,16 +43,16 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
 		wfDebugLog( 'AuthManagerOAuth1', var_export($options, true) );
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
-			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-login'), wfMessage('authmanageroauth-login')) ];
+			return [ new OAuthAuthenticationRequest('', wfMessage('authmanageroauth-login'), wfMessage('authmanageroauth-login')) ];
 		}
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE ) {
-			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-create'), wfMessage('authmanageroauth-create')) ];
+			return [ new OAuthAuthenticationRequest('', wfMessage('authmanageroauth-create'), wfMessage('authmanageroauth-create')) ];
 		}
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LINK ) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				$reqs[] = new OAuthAuthenticationRequest(wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
+				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
 			}
 			return $reqs;
 		}
@@ -69,7 +69,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			);
 			$reqs = [];
 			foreach ($result as $obj) {
-				$reqs[] = new OAuthAuthenticationRequest(wfMessage('authmanageroauth-delete'), wfMessage('authmanageroauth-delete'));
+				$reqs[] = new OAuthAuthenticationRequest('', wfMessage('authmanageroauth-delete'), wfMessage('authmanageroauth-delete'));
 			}
 			return $reqs;
 		}
