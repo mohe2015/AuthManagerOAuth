@@ -38,7 +38,8 @@
 	},
 	"Hooks": {
 		"BeforePageDisplay": "AuthManagerOAuthHooks",
-		"GetPreferences": "AuthManagerOAuthHooks"
+		"GetPreferences": "AuthManagerOAuthHooks",
+		"LoadExtensionSchemaUpdates": "AuthManagerOAuthHooks"
 	},
 	"MessagesDirs": {
 		"AuthManagerOAuth": [

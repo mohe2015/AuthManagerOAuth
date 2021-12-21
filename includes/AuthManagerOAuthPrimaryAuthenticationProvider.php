@@ -50,7 +50,21 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-link'), wfMessage('authmanageroauth-link')) ];
 		}
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ) {
-			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-delete'), wfMessage('authmanageroauth-delete')) ];
+			$user = \User::newFromName( $options['username'] ); // TODO FIXME get user from database
+			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+			$dbr = $lb->getConnectionRef( DB_REPLICA );
+			$result = $dbr->select(
+				'authmanageroauth_linked_accounts',
+				[ 'amoa_provider', 'amoa_remote_user' ],
+				[ 'amoa_local_user' => $user->getId() ],
+				__METHOD__,
+
+			);
+			$reqs = [];
+			foreach ($result as $obj) {
+				$reqs[] = new OAuthAuthenticationRequest(wfMessage('authmanageroauth-delete'), wfMessage('authmanageroauth-delete'));
+			}
+			return $reqs;
 		}
 		return [];
 	}

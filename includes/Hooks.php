@@ -41,4 +41,11 @@ class Hooks implements \MediaWiki\Hook\BeforePageDisplayHook {
 			'section' => 'personal/info',
 		];
 	}
+
+	public static function onLoadExtensionSchemaUpdates(\DatabaseUpdater $updater) {
+		$updater->addExtensionTable(
+			'authmanageroauth_linked_accounts',
+			dirname( __FILE__ ) . '/sql/authmanageroauth_linked_accounts.sql'
+		);
+	}
 }
