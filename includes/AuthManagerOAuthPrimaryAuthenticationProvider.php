@@ -53,7 +53,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			);
 			$reqs = [];
 			foreach ($result as $obj) {
-				$reqs[] = new OAuthAuthenticationRequest('', wfMessage('authmanageroauth-delete'), wfMessage('authmanageroauth-delete'));
+				wfDebugLog( 'YYYYY', var_export($obj, true) );
+				$reqs[] = new OAuthAuthenticationRequest('', wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
 			}
 			return $reqs;
 		}
