@@ -20,6 +20,7 @@
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use MediaWiki\Auth\ButtonAuthenticationRequest;
+use \MediaWiki\Auth\AuthManager;
 
 class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
 
