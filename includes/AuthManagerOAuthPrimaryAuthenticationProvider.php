@@ -27,7 +27,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
 		wfDebugLog( 'AuthManagerOAuth1', var_export($options, true) );
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
-			return [ new OAuthAuthenticationRequest('', wfMessage('authmanageroauth-login'), wfMessage('authmanageroauth-login')) ];
+			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
+			$reqs = [];
+			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
+				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-login', $provider_name), wfMessage('authmanageroauth-login', $provider_name));
+			}
+			return $reqs;
 		}
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE ) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
@@ -71,8 +76,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
-		wfDebugLog( 'AuthManagerOAuth4', var_export($req, true) );
-		return \StatusValue::newGood();
+		wfDebugLog( 'UUUUUUU', var_export($req, true) );
+		//return \StatusValue::newGood();
+		return \StatusValue::newFail();
 	}
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
@@ -80,15 +86,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 		if ($req->action === AuthManager::ACTION_REMOVE) {
 			$req->username;
-			//          $dbw = $this->loadBalancer->getConnectionRef( DB_PRIMARY );
 		}
-
-		// https://www.mediawiki.org/wiki/Manual:User_properties_table
-		// https://www.mediawiki.org/wiki/Manual:User_preferences
-		// TODO can we enforce that the user can't change the value?
-		// $wgHiddenPrefs[] = 'minordefault';
-		// https://www.mediawiki.org/wiki/Manual:Hooks/GetPreferences
-		// https://www.mediawiki.org/wiki/Manual:UserOptions.php
 	}
 
 	function accountCreationType() {
@@ -172,19 +170,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
 
-				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-				$dbr = $lb->getConnectionRef( DB_PRIMARY );
-				$result = $dbr->insert(
-					'authmanageroauth_linked_accounts',
-					[
-						'amoa_local_user' => $user->getId(),
-						'amoa_provider' => $req->provider_name,
-						'amoa_remote_user' => $resourceOwner->getId(),
-					],
-					__METHOD__,
-				);
-
-				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
+				// $resourceOwner->toArray()['login']
+				return \MediaWiki\Auth\AuthenticationResponse::newPass();
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
@@ -267,5 +254,19 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
+	}
+
+	function finishAccountCreation($user, $creator, \MediaWiki\Auth\AuthenticationResponse $response) {
+		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr = $lb->getConnectionRef( DB_PRIMARY );
+		$result = $dbr->insert(
+			'authmanageroauth_linked_accounts',
+			[
+				'amoa_local_user' => $user->getId(),
+				'amoa_provider' => $req->provider_name,
+				'amoa_remote_user' => $resourceOwner->getId(),
+			],
+			__METHOD__,
+		);
 	}
 }
