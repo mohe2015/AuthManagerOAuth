@@ -35,6 +35,12 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 	 */
 	public $errorCode;
 
+	public $provider_name;
+
+    function __construct($provider_name) {
+        $this->provider_name = $provider_name;
+    }
+
 	public function getFieldInfo() {
         wfDebugLog( 'AuthManagerOAuth8', "getFieldInfo" );
 		return [

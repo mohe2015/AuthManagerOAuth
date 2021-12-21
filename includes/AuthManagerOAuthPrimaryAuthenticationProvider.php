@@ -23,22 +23,6 @@ use MediaWiki\MediaWikiServices;
 
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
-	function __construct() {
-		//for ($config->get( 'AuthManagerOAuthConfig' ) as $providers) {
-
-		//}
-		//$this->provider = new \League\OAuth2\Client\Provider\GenericProvider();
-		/*
-		$wgAuthManagerOAuthConfig = [
-			'clientId'                => 'XXXXXX',
-			'clientSecret'            => 'XXXXXX',
-			'urlAuthorize'            => 'https://github.com/login/oauth/authorize',
-			'urlAccessToken'          => 'https://github.com/login/oauth/access_token',
-			'urlResourceOwnerDetails' => 'https://api.github.com/user'
-		];
-		*/
-	}
-
 	function getAuthenticationRequests($action, array $options) {
 		wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
 		wfDebugLog( 'AuthManagerOAuth1', var_export($options, true) );
@@ -81,13 +65,13 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		if ($req !== null) {
-			$authorizationUrl = $this->provider->getAuthorizationUrl([
+			$authorizationUrl = $provider->getAuthorizationUrl([
 				'redirect_uri' => $req->returnToUrl
 			]);
 
 			// TODO FIXME do this the mediawiki way
 			// Get the state generated for you and store it to the session.
-			$_SESSION['oauth2state'] = $this->provider->getState();
+			$_SESSION['oauth2state'] = $provider->getState();
 
 			// TODO FIXME maybe create new req THIS SHOULD BE THE NEXT STEP I THINK
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest()], $authorizationUrl, null);
@@ -104,7 +88,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				// TODO FIXME validate state
 
 				// Try to get an access token using the authorization code grant.
-				$accessToken = $this->provider->getAccessToken('authorization_code', [
+				$accessToken = $provider->getAccessToken('authorization_code', [
 					'code' => $req->accessToken
 				]);
 		
@@ -117,7 +101,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		
 				// Using the access token, we may look up details about the
 				// resource owner.
-				$resourceOwner = $this->provider->getResourceOwner($accessToken);
+				$resourceOwner = $provider->getResourceOwner($accessToken);
 		
 				//var_export($resourceOwner->toArray());
 
@@ -175,13 +159,13 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		if ($req !== null) {
-			$authorizationUrl = $this->provider->getAuthorizationUrl([
+			$authorizationUrl = $provider->getAuthorizationUrl([
 				'redirect_uri' => $req->returnToUrl
 			]);
 
 			// TODO FIXME do this the mediawiki way
 			// Get the state generated for you and store it to the session.
-			$_SESSION['oauth2state'] = $this->provider->getState();
+			$_SESSION['oauth2state'] = $provider->getState();
 
 			// TODO FIXME maybe create new req THIS SHOULD BE THE NEXT STEP I THINK
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest()], $authorizationUrl, null);
@@ -198,11 +182,11 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				// TODO FIXME validate state
 
 				// Try to get an access token using the authorization code grant.
-				$accessToken = $this->provider->getAccessToken('authorization_code', [
+				$accessToken = $provider->getAccessToken('authorization_code', [
 					'code' => $req->accessToken
 				]);
 		
-				$resourceOwner = $this->provider->getResourceOwner($accessToken);
+				$resourceOwner = $provider->getResourceOwner($accessToken);
 		
 				var_export($resourceOwner->toArray());
 
@@ -230,16 +214,18 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		if ($req !== null) {
-			$authorizationUrl = $this->provider->getAuthorizationUrl([
+			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
+			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
+			$authorizationUrl = $provider->getAuthorizationUrl([
 				'redirect_uri' => $req->returnToUrl
 			]);
 
 			// TODO FIXME do this the mediawiki way
 			// Get the state generated for you and store it to the session.
-			$_SESSION['oauth2state'] = $this->provider->getState();
+			$_SESSION['oauth2state'] = $provider->getState();
 
 			// TODO FIXME maybe create new req THIS SHOULD BE THE NEXT STEP I THINK
-			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest()], $authorizationUrl, null);
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
@@ -249,14 +235,16 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth3', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
+			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
+			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
 				// TODO FIXME validate state
 
-				$accessToken = $this->provider->getAccessToken('authorization_code', [
+				$accessToken = $provider->getAccessToken('authorization_code', [
 					'code' => $req->accessToken
 				]);
 		
-				$resourceOwner = $this->provider->getResourceOwner($accessToken);
+				$resourceOwner = $provider->getResourceOwner($accessToken);
 
 				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
 
