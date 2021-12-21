@@ -5,9 +5,8 @@
 		]
 	},
 	"authmanageroauth-desc": "{{desc|name=AuthManagerOAuth|url=https://www.mediawiki.org/wiki/Extension:AuthManagerOAuth}}",
-	"authmanageroauth-test": "Button text for logging in with GitHub. Also tell the user to not fill out the login form (especially not the password field)",
-	"authmanageroauth-login": "Button text for logging in with GitHub. Also tell the user to not fill out the login form (especially not the password field)",
-	"authmanageroauth-create": "Button text for registering in with GitHub. Also tell the user to only fill out the username field (especially not the password field)",
-	"authmanageroauth-link": "Button text for linking account with GitHub.",
+	"authmanageroauth-login": "Button text for logging in with $1. Also tell the user to not fill out the login form (especially not the password field)",
+	"authmanageroauth-create": "Button text for registering in with $1. Also tell the user to only fill out the username field (especially not the password field)",
+	"authmanageroauth-link": "Button text for linking account with $1.",
 	"authmanageroauth-error": "A generic OAuth error with $1 for the message."
 }

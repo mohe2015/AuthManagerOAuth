@@ -21,27 +21,6 @@ namespace MediaWiki\Extension\AuthManagerOAuth;
 
 class Hooks implements \MediaWiki\Hook\BeforePageDisplayHook {
 
-	/**
-	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/BeforePageDisplay
-	 * @param \OutputPage $out
-	 * @param \Skin $skin
-	 */
-	public function onBeforePageDisplay( $out, $skin ): void {
-		$config = $out->getConfig();
-		if ( $config->get( 'AuthManagerOAuthVandalizeEachPage' ) ) {
-			$out->addHTML( \Html::element( 'p', [], 'AuthManagerOAuth was here' ) );
-			$out->addModules( 'oojs-ui-core' );
-		}
-	}
-
-	public static function onGetPreferences( $user, &$preferences ) {
-		$preferences['authmanageroauth-pref-userid'] = [
-			'type' => 'text',
-			'label-message' => 'authmanageroauth-userid',
-			'section' => 'personal/info',
-		];
-	}
-
 	public static function onLoadExtensionSchemaUpdates(\DatabaseUpdater $updater) {
 		$updater->addExtensionTable(
 			'authmanageroauth_linked_accounts',

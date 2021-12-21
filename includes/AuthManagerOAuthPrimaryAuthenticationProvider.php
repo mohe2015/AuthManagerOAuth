@@ -24,8 +24,10 @@ use MediaWiki\MediaWikiServices;
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
 	function __construct() {
-		$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
-		$this->provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' ));
+		//for ($config->get( 'AuthManagerOAuthConfig' ) as $providers) {
+
+		//}
+		//$this->provider = new \League\OAuth2\Client\Provider\GenericProvider();
 		/*
 		$wgAuthManagerOAuthConfig = [
 			'clientId'                => 'XXXXXX',
@@ -47,7 +49,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-create'), wfMessage('authmanageroauth-create')) ];
 		}
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LINK ) {
-			return [ new OAuthAuthenticationRequest(wfMessage('authmanageroauth-link'), wfMessage('authmanageroauth-link')) ];
+			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
+			$reqs = [];
+			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
+				$reqs[] = new OAuthAuthenticationRequest(wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
+			}
+			return $reqs;
 		}
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ) {
 			$user = \User::newFromName( $options['username'] ); // TODO FIXME get user from database
