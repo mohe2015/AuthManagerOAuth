@@ -29,6 +29,8 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 	 */
 	public $accessToken;
 
+	public $resourceOwnerId;
+
 	/**
 	 * An error code returned in case of Authentication failure
 	 * @var string

@@ -167,11 +167,14 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				]);
 		
 				$resourceOwner = $provider->getResourceOwner($accessToken);
+				$req->resourceOwnerId = $resourceOwner->getId();
 
 				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
 
 				// $resourceOwner->toArray()['login']
-				return \MediaWiki\Auth\AuthenticationResponse::newPass();
+				$response = \MediaWiki\Auth\AuthenticationResponse::newPass();
+				$response->createRequest = $req;
+				return $response;
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
@@ -257,6 +260,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function finishAccountCreation($user, $creator, \MediaWiki\Auth\AuthenticationResponse $response) {
+		wfDebugLog( 'IIIIIII', var_export($response, true) );
+		$req = $response->createRequest;
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnectionRef( DB_PRIMARY );
 		$result = $dbr->insert(
@@ -264,7 +269,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			[
 				'amoa_local_user' => $user->getId(),
 				'amoa_provider' => $req->provider_name,
-				'amoa_remote_user' => $resourceOwner->getId(),
+				'amoa_remote_user' => $req->resourceOwnerId,
 			],
 			__METHOD__,
 		);
