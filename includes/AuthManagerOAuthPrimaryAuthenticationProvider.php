@@ -223,9 +223,27 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
 
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-				$dbr = $lb->getConnectionRef( DB_PRIMARY );
+				$dbr = $lb->getConnectionRef( DB_REPLICA );
 
-				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
+				$result = $dbr->select(
+					'authmanageroauth_linked_accounts',
+					[ 'amoa_provider', 'amoa_remote_user' ],
+					[ 'amoa_provider' => $req->provider_name, 'amoa_remote_user' => $resourceOwner->getId() ],
+					__METHOD__,
+	
+				);
+				$reqs = [];
+				foreach ($result as $obj) {
+					// TODO FIXME I think we need something else here
+					wfDebugLog( 'YYYYY', var_export($obj, true) );
+					$req = new OAuthAuthenticationRequest($obj->amoa_provider, wfMessage('authmanageroauth-login', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-login', $obj->amoa_provider, $obj->amoa_remote_user));
+					$req->resourceOwnerId = $obj->amoa_remote_user;
+					$reqs[] = $req;
+				}
+				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose'));
+
+
+				//return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
