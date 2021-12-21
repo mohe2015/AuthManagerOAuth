@@ -1,4 +1,5 @@
 {
+	"name": "mohe2015/authmanageroauth",
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "38.0.0",
 		"mediawiki/minus-x": "1.1.1",
