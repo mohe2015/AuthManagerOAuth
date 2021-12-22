@@ -29,6 +29,8 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 	 */
 	public $accessToken;
 
+	public $state;
+
 	public $resourceOwnerId;
 
 	/**
@@ -43,8 +45,9 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
         $this->provider_name = $provider_name;
     }
 
+	// We saw this form when we did manual submission of the oauth redirect so fix the messages
+	// TODO also fix it if we get an error message - I think we don't handle that currently
 	public function getFieldInfo() {
-        wfDebugLog( 'AuthManagerOAuth8', "getFieldInfo" );
 		return [
 			'error' => [
 				'type' => 'string',
@@ -53,6 +56,12 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 				'optional' => true,
 			],
 			'code' => [
+				'type' => 'string',
+				'label' => wfMessage('authmanageroauth-test'),
+				'help' => wfMessage('authmanageroauth-test'),
+				'optional' => true,
+			],
+			'state' => [
 				'type' => 'string',
 				'label' => wfMessage('authmanageroauth-test'),
 				'help' => wfMessage('authmanageroauth-test'),
@@ -67,9 +76,9 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 	 * @return bool
 	 */
 	public function loadFromSubmission( array $data ) {
-        wfDebugLog( 'AuthManagerOAuth10', var_export($data, true) );
-		if ( isset( $data['code'] ) ) {
+		if ( isset( $data['code'] ) && isset( $data['state'] )  ) {
 			$this->accessToken = $data['code'];
+			$this->state = $data['state'];
 			return true;
 		}
 
