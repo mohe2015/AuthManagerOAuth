@@ -17,7 +17,7 @@
 	"config": {
 		"AuthManagerOAuthConfig": {
 			"description": "Dictionary of GenericProvider constructor parameters at https://oauth2-client.thephpleague.com/usage/",
-			"value": "[]"
+			"value": {}
 		}
 	},
 	"ConfigRegistry": {
