@@ -10,5 +10,6 @@
 	"authmanageroauth-link": "Link with $1",
 	"authmanageroauth-remove": "Unlink $1 account $2",
 	"authmanageroauth-choose": "Login as $1",
+	"authmanageroauth-no-linked-accounts": "No linked accounts yet - Try creating an account",
 	"authmanageroauth-error": "Error: $1"
 }
