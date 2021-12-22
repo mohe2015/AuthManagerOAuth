@@ -277,6 +277,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			if ($auth_req !== null) {
 				$auth_data = $this->manager->getAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_REMOTE_USER);
 				if ($auth_data) {
+					$this->manager->removeAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_REMOTE_USER);
 					// TODO FIXME validate username
 					return \MediaWiki\Auth\AuthenticationResponse::newPass($auth_req->username);
 				}
