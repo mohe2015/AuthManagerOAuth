@@ -24,10 +24,13 @@ use \MediaWiki\Auth\AuthManager;
 
 class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
 
-    public $provider_name;
+    public $amoa_local_user;
 
-    function __construct($provider_name, \Message $label, \Message $help) {
-        parent::__construct("oauthmanageroauth-$provider_name", $label, $help, true);
-        $this->provider_name = $provider_name;
+    public $amoa_provider;
+
+    public $amoa_remote_user;
+
+    function __construct($id, \Message $label, \Message $help) {
+        parent::__construct("oauthmanageroauth-$id", $label, $help, true);
     }
 }

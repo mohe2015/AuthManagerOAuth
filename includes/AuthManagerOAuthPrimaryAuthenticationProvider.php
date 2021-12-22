@@ -33,7 +33,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
 				// TODO Button-like Request with just the provider name
-				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-login', $provider_name), wfMessage('authmanageroauth-login', $provider_name));
+				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-login', $provider_name), wfMessage('authmanageroauth-login', $provider_name));
+				$a_req->provider_name = $provider_name;
+				$reqs[] = $a_req;
 			}
 			return $reqs;
 		}
@@ -41,8 +43,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-					// TODO Button-like Request with just the provider name
-				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-create', $provider_name), wfMessage('authmanageroauth-create', $provider_name));
+				// TODO Button-like Request with just the provider name
+				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-create', $provider_name), wfMessage('authmanageroauth-create', $provider_name));
+				$a_req->provider_name = $provider_name;
+				$reqs[] = $a_req;
 			}
 			return $reqs;
 		}
@@ -51,7 +55,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
 				// TODO Button-like Request with just the provider name
-				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
+				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
+				$a_req->provider_name = $provider_name;
+				$reqs[] = $a_req;
 			}
 			return $reqs;
 		}
@@ -67,8 +73,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			);
 			$reqs = [];
 			foreach ($result as $obj) {
-				// TODO this should probably be a separate thing as it has a different format
-				$req = new OAuthLinkRemoveRequest($obj->amoa_provider, $obj->amoa_remote_user);
+				// id not unique - hashing would probably work
+				$req = new OAuthAuthenticationRequest($obj->amoa_provider . $obj->amoa_remote_user, wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
+				$req->amoa_provider = $obj->amoa_provider;
+				$req->amoa_remote_user = $obj->amoa_remote_user;
 				$reqs[] = $req;
 			}
 			return $reqs;
@@ -101,7 +109,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				[
 					'amoa_local_user' => $user->getId(),
 					'amoa_provider' => $req->provider_name,
-					'amoa_remote_user' => $req->remoteUser,
+					'amoa_remote_user' => $req->amoa_remote_user,
 				],
 				__METHOD__,
 			);
@@ -244,6 +252,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					$user = \User::newFromId($obj->amoa_local_user);
 
 					$cur_req = new OAuthAuthenticationRequest($obj->amoa_local_user, wfMessage('authmanageroauth-choose', $user->getName()), wfMessage('authmanageroauth-choose', $user->getName()));
+					$cur_req->amoa_local_user = $obj->amoa_local_user;
 					$reqs[] = $cur_req;
 				}
 				if (count($obj) === 0) {
