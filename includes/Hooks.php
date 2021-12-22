@@ -19,7 +19,7 @@
 
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
-class Hooks implements \MediaWiki\Hook\BeforePageDisplayHook {
+class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook {
 
 	public static function onLoadExtensionSchemaUpdates(\DatabaseUpdater $updater) {
 		$updater->addExtensionTable(
