@@ -266,6 +266,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				}
 				if (count($reqs) === 0) {
 					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-no-linked-accounts'));
+					/*$test = \MediaWiki\Auth\AuthenticationResponse::newPass(null);
+					$test->createRequest = $req;
+					$test->linkRequest = $req;
+					return $test;*/
 					//$req->autoCreate = true;
 					//return \MediaWiki\Auth\AuthenticationResponse::newUI([$req], wfMessage('authmanageroauth-autocreate'));;
 				} else {
@@ -284,7 +288,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$auth_data = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
 				if ($auth_data) {
 					$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
-					// TODO FIXME validate username
+					// TODO FIXME validate username (not needed you cant spoof them)
+					// still a TOC TOU vuln
 					return \MediaWiki\Auth\AuthenticationResponse::newPass($auth_req->username);
 				} else {
 					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-abc'));
