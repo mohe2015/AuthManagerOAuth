@@ -64,7 +64,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 			return $reqs;
 		}
-		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ) {
+		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
+			 $action ===  \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) {
 			$user = \User::newFromName( $options['username'] );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_REPLICA );
@@ -93,8 +94,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
 		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export($req, true) );
-		if (get_class( $req ) === OAuthLinkRemoveRequest::class &&
+		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
 			$req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE) {
+			return \StatusValue::newGood();
+		}
+		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
+			$req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE) {
 			return \StatusValue::newGood();
 		}
 		return \StatusValue::newGood('ignored');
@@ -102,8 +107,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
 		wfDebugLog( 'AuthManagerOAuth providerChangeAuthenticationData', var_export($req, true) );
-		if (get_class( $req ) === OAuthLinkRemoveRequest::class &&
-			$req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE) {
+		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
+			($req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE)) {
 			$user = \User::newFromName( $req->username );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_PRIMARY );
@@ -111,7 +116,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'authmanageroauth_linked_accounts',
 				[
 					'amoa_local_user' => $user->getId(),
-					'amoa_provider' => $req->provider_name,
+					'amoa_provider' => $req->amoa_provider,
 					'amoa_remote_user' => $req->amoa_remote_user,
 				],
 				__METHOD__,

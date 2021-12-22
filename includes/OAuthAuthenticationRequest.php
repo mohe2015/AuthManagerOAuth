@@ -33,4 +33,11 @@ class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
     function __construct($id, \Message $label, \Message $help) {
         parent::__construct("oauthmanageroauth-$id", $label, $help, true);
     }
+
+    public function describeCredentials() {
+		return [
+            "provider" => new \RawMessage( '$1 OAuth', [ $this->amoa_provider ] ),
+            "account" => new \RawMessage( '$1', [ $this->amoa_remote_user ] )
+        ];
+	}
 }

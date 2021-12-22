@@ -106,4 +106,11 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 		}
 		return false;
 	}
+
+	public function describeCredentials() {
+		return [
+            "provider" => new \RawMessage( '$1 OAuth', [ $this->amoa_provider ] ),
+            "account" => new \RawMessage( '$1', [ $this->amoa_remote_user ] )
+        ];
+	}
 }
