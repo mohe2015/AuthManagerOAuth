@@ -232,7 +232,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					$reqs[] = $req;
 				}
 				if (count($reqs) === 0) {
-					$reqs = [ new OAuthAuthenticationRequest(0, wfMessage('authmanageroauth-'), wfMessage('authmanageroauth-autocreate')) ];
+					$reqs = [ new OAuthLoginAutoCreateRequest() ];
 					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-autocreate'));;
 				} else {
 					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose'));
@@ -245,9 +245,14 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			if ($req !== null) {
 				return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
 			} else {
-				return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+				$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthLoginAutoCreateRequest::class);
+				if ($req !== null) {
+					// TODO FIXME this doesn't validate the data so this is a security vulnerability
+					return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
+				}
 			}
 		}
+		return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 	}
 
 	function continuePrimaryAccountLink($user, array $reqs) {
