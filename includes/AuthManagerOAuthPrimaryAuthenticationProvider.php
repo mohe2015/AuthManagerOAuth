@@ -26,6 +26,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	//wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
 
+	const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
+	const AUTHENTICATION_SESSION_DATA_REMOTE_USER = 'authmanageroauth:remote_user';
+
 	function getAuthenticationRequests($action, array $options) {
 		wfDebugLog( 'AuthManagerOAuth getAuthenticationRequests', var_export($action, true) );
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
@@ -130,7 +133,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'redirect_uri' => $req->returnToUrl
 			]);
 
-			$this->manager->setAuthenticationSessionData('authmanageroauth', $provider->getState());
+			$this->manager->setAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
 
 			// TODO Server authentication request that will contain the data to prove authentication
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
@@ -149,7 +152,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'redirect_uri' => $req->returnToUrl
 			]);
 
-			$this->manager->setAuthenticationSessionData('authmanageroauth', $provider->getState());
+			$this->manager->setAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
 
 			// TODO Server authentication request that will contain the data to prove authentication
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
@@ -168,7 +171,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'redirect_uri' => $req->returnToUrl
 			]);
 
-			$this->manager->setAuthenticationSessionData('authmanageroauth', $provider->getState());
+			$this->manager->setAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
 
 			// TODO Server authentication request that will contain the data to prove authentication
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
@@ -184,8 +187,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
-				$state = $this->manager->getAuthenticationSessionData('authmanageroauth');
-				//$this->manager->removeAuthenticationSessionData('authmanageroauth');
+				$state = $this->manager->getAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE);
+				//$this->manager->removeAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE);
 				if ($state !== $req->state) {
 					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-state-mismatch'));
 				}
@@ -215,8 +218,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
-				$state = $this->manager->getAuthenticationSessionData('authmanageroauth');
-				//$this->manager->removeAuthenticationSessionData('authmanageroauth');
+				$state = $this->manager->getAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE);
+				//$this->manager->removeAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE);
 				if ($state !== $req->state) {
 					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-state-mismatch'));
 				}
@@ -281,8 +284,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
-				$state = $this->manager->getAuthenticationSessionData('authmanageroauth');
-				//$this->manager->removeAuthenticationSessionData('authmanageroauth'); // TODO FIXME delete this after use to prevent later reuse
+				$state = $this->manager->getAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE);
+				//$this->manager->removeAuthenticationSessionData(AUTHENTICATION_SESSION_DATA_STATE); // TODO FIXME delete this after use to prevent later reuse
 				if ($state !== $req->state) {
 					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-state-mismatch'));
 				}
