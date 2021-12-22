@@ -213,6 +213,17 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		
 				$resourceOwner = $provider->getResourceOwner($accessToken);
 
+				/*
+				if ($req->autoCreate && $req->username) {
+					$user = \User::newFromName($req->username);
+					if ($user.exists()) { // TODO FIXME race condition
+
+					} else {
+
+					}
+				}
+				*/
+
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 				$dbr = $lb->getConnectionRef( DB_REPLICA );
 
@@ -232,8 +243,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					$reqs[] = $req;
 				}
 				if (count($reqs) === 0) {
-					$reqs = [ new OAuthLoginAutoCreateRequest() ];
-					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-autocreate'));;
+					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-no-linked-accounts'));
+					//$req->autoCreate = true;
+					//return \MediaWiki\Auth\AuthenticationResponse::newUI([$req], wfMessage('authmanageroauth-autocreate'));;
 				} else {
 					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose'));
 				}
@@ -244,12 +256,6 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 			if ($req !== null) {
 				return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
-			} else {
-				$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthLoginAutoCreateRequest::class);
-				if ($req !== null) {
-					// TODO FIXME this doesn't validate the data so this is a security vulnerability
-					return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
-				}
 			}
 		}
 		return \MediaWiki\Auth\AuthenticationResponse::newAbstain();

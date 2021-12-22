@@ -33,6 +33,8 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
 	public $resourceOwnerId;
 
+	public $autoCreate;
+
 	/**
 	 * An error code returned in case of Authentication failure
 	 * @var string
@@ -43,12 +45,13 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
     function __construct($provider_name) {
         $this->provider_name = $provider_name;
+		$this->autoCreate = false;
     }
 
 	// We saw this form when we did manual submission of the oauth redirect so fix the messages
 	// TODO also fix it if we get an error message - I think we don't handle that currently
 	public function getFieldInfo() {
-		return [
+		$result = [
 			'error' => [
 				'type' => 'string',
 				'label' => wfMessage('authmanageroauth-test'),
@@ -68,6 +71,17 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 				'optional' => true,
 			],
 		];
+		if ($this->autoCreate) {
+			$result[] = [
+				'username' => [
+					'type' => 'string',
+					'value' => 'testusername',
+					'label' => wfMessage('authmanageroauth-test'),
+					'help' => wfMessage('authmanageroauth-test'),
+				],
+			];
+		}
+		return $result;
 	}
 
 	/**
@@ -76,6 +90,10 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 	 * @return bool
 	 */
 	public function loadFromSubmission( array $data ) {
+		if ( isset( $data['username'] ) ) {
+			$this->username = $data['username'];
+		}
+
 		if ( isset( $data['code'] ) && isset( $data['state'] )  ) {
 			$this->accessToken = $data['code'];
 			$this->state = $data['state'];
