@@ -29,7 +29,11 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 	 */
 	public $accessToken;
 
+	public $state;
+
 	public $resourceOwnerId;
+
+	public $autoCreate;
 
 	/**
 	 * An error code returned in case of Authentication failure
@@ -41,11 +45,13 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
     function __construct($provider_name) {
         $this->provider_name = $provider_name;
+		$this->autoCreate = false;
     }
 
+	// We saw this form when we did manual submission of the oauth redirect so fix the messages
+	// TODO also fix it if we get an error message - I think we don't handle that currently
 	public function getFieldInfo() {
-        wfDebugLog( 'AuthManagerOAuth8', "getFieldInfo" );
-		return [
+		$result = [
 			'error' => [
 				'type' => 'string',
 				'label' => wfMessage('authmanageroauth-test'),
@@ -58,7 +64,24 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 				'help' => wfMessage('authmanageroauth-test'),
 				'optional' => true,
 			],
+			'state' => [
+				'type' => 'string',
+				'label' => wfMessage('authmanageroauth-test'),
+				'help' => wfMessage('authmanageroauth-test'),
+				'optional' => true,
+			],
 		];
+		if ($this->autoCreate) {
+			$result[] = [
+				'username' => [
+					'type' => 'string',
+					'value' => 'testusername',
+					'label' => wfMessage('authmanageroauth-test'),
+					'help' => wfMessage('authmanageroauth-test'),
+				],
+			];
+		}
+		return $result;
 	}
 
 	/**
@@ -67,9 +90,13 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 	 * @return bool
 	 */
 	public function loadFromSubmission( array $data ) {
-        wfDebugLog( 'AuthManagerOAuth10', var_export($data, true) );
-		if ( isset( $data['code'] ) ) {
+		if ( isset( $data['username'] ) ) {
+			$this->username = $data['username'];
+		}
+
+		if ( isset( $data['code'] ) && isset( $data['state'] )  ) {
 			$this->accessToken = $data['code'];
+			$this->state = $data['state'];
 			return true;
 		}
 
@@ -78,5 +105,12 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 			return true;
 		}
 		return false;
+	}
+
+	public function describeCredentials() {
+		return [
+            "provider" => new \RawMessage( '$1 OAuth', [ $this->amoa_provider ] ),
+            "account" => new \RawMessage( '$1', [ $this->amoa_remote_user ] )
+        ];
 	}
 }

@@ -10,5 +10,8 @@
 	"authmanageroauth-link": "Link with $1",
 	"authmanageroauth-remove": "Unlink $1 account $2",
 	"authmanageroauth-choose": "Login as $1",
+	"authmanageroauth-choose-message": "Choose account to login with",
+	"authmanageroauth-no-linked-accounts": "No linked accounts yet - Try creating an account",
+	"authmanageroauth-state-mismatch": "Mismatched authentication state - This looks like an attack",
 	"authmanageroauth-error": "Error: $1"
 }

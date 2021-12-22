@@ -20,17 +20,25 @@
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Auth\AuthenticationResponse;
 
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
+	//wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
+
+	const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
+	const AUTHENTICATION_SESSION_DATA_REMOTE_USER = 'authmanageroauth:remote_user';
+
 	function getAuthenticationRequests($action, array $options) {
-		wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
-		wfDebugLog( 'AuthManagerOAuth1', var_export($options, true) );
+		wfDebugLog( 'AuthManagerOAuth getAuthenticationRequests', var_export($action, true) );
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-login', $provider_name), wfMessage('authmanageroauth-login', $provider_name));
+				// TODO Button-like Request with just the provider name
+				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-login', $provider_name), wfMessage('authmanageroauth-login', $provider_name));
+				$a_req->provider_name = $provider_name;
+				$reqs[] = $a_req;
 			}
 			return $reqs;
 		}
@@ -38,7 +46,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-create', $provider_name), wfMessage('authmanageroauth-create', $provider_name));
+				// TODO Button-like Request with just the provider name
+				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-create', $provider_name), wfMessage('authmanageroauth-create', $provider_name));
+				$a_req->provider_name = $provider_name;
+				$reqs[] = $a_req;
 			}
 			return $reqs;
 		}
@@ -46,12 +57,16 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
+				// TODO Button-like Request with just the provider name
+				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
+				$a_req->provider_name = $provider_name;
+				$reqs[] = $a_req;
 			}
 			return $reqs;
 		}
-		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ) {
-			$user = \User::newFromName( $options['username'] ); // TODO FIXME get user from database
+		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
+			 $action ===  \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) {
+			$user = \User::newFromName( $options['username'] );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_REPLICA );
 			$result = $dbr->select(
@@ -59,13 +74,13 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				[ 'amoa_provider', 'amoa_remote_user' ],
 				[ 'amoa_local_user' => $user->getId() ],
 				__METHOD__,
-
 			);
 			$reqs = [];
 			foreach ($result as $obj) {
-				wfDebugLog( 'YYYYY', var_export($obj, true) );
-				$req = new OAuthAuthenticationRequest($obj->amoa_provider, wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
-				$req->resourceOwnerId = $obj->amoa_remote_user;
+				// id not unique - hashing would probably work
+				$req = new OAuthAuthenticationRequest($obj->amoa_provider . $obj->amoa_remote_user, wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
+				$req->amoa_provider = $obj->amoa_provider;
+				$req->amoa_remote_user = $obj->amoa_remote_user;
 				$reqs[] = $req;
 			}
 			return $reqs;
@@ -78,24 +93,22 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
-		wfDebugLog( 'UUUUUUU', var_export($req, true) );
-
+		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export($req, true) );
 		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
 			$req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE) {
 			return \StatusValue::newGood();
 		}
+		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
+			$req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE) {
+			return \StatusValue::newGood();
+		}
 		return \StatusValue::newGood('ignored');
-
-		//return \StatusValue::newGood('ignored');
-		//return \StatusValue::newFatal();
 	}
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
-		wfDebugLog( 'AuthManagerOAuth5', var_export($req, true) );
-
+		wfDebugLog( 'AuthManagerOAuth providerChangeAuthenticationData', var_export($req, true) );
 		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
-			$req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE) {
-			
+			($req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE)) {
 			$user = \User::newFromName( $req->username );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_PRIMARY );
@@ -103,8 +116,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'authmanageroauth_linked_accounts',
 				[
 					'amoa_local_user' => $user->getId(),
-					'amoa_provider' => $req->provider_name,
-					'amoa_remote_user' => $req->resourceOwnerId,
+					'amoa_provider' => $req->amoa_provider,
+					'amoa_remote_user' => $req->amoa_remote_user,
 				],
 				__METHOD__,
 			);
@@ -116,7 +129,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 	
 	function beginPrimaryAccountCreation($user, $creator, array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth beginPrimaryAccountCreation', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
@@ -125,10 +138,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'redirect_uri' => $req->returnToUrl
 			]);
 
-			// TODO FIXME do this the mediawiki way
-			// Get the state generated for you and store it to the session.
-			$_SESSION['oauth2state'] = $provider->getState();
+			$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
 
+			// TODO Server authentication request that will contain the data to prove authentication
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
@@ -136,7 +148,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function beginPrimaryAuthentication(array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth beginPrimaryAuthentication', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
@@ -145,10 +157,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'redirect_uri' => $req->returnToUrl
 			]);
 
-			// TODO FIXME do this the mediawiki way
-			// Get the state generated for you and store it to the session.
-			$_SESSION['oauth2state'] = $provider->getState();
+			$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
 
+			// TODO Server authentication request that will contain the data to prove authentication
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
@@ -156,7 +167,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function beginPrimaryAccountLink($user, array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth2', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth beginPrimaryAccountLink', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
@@ -165,10 +176,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'redirect_uri' => $req->returnToUrl
 			]);
 
-			// TODO FIXME do this the mediawiki way
-			// Get the state generated for you and store it to the session.
-			$_SESSION['oauth2state'] = $provider->getState();
+			$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
 
+			// TODO Server authentication request that will contain the data to prove authentication
 			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
@@ -176,13 +186,17 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function continuePrimaryAccountCreation($user, $creator, array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth3', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountCreation', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
-				// TODO FIXME validate state
+				$state = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE);
+				$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE);
+				if ((!$state) || $state !== $req->state) {
+					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-state-mismatch'));
+				}
 
 				$accessToken = $provider->getAccessToken('authorization_code', [
 					'code' => $req->accessToken
@@ -191,9 +205,6 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$resourceOwner = $provider->getResourceOwner($accessToken);
 				$req->resourceOwnerId = $resourceOwner->getId();
 
-				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
-
-				// $resourceOwner->toArray()['login']
 				$response = \MediaWiki\Auth\AuthenticationResponse::newPass();
 				$response->createRequest = $req;
 				return $response;
@@ -206,13 +217,17 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function continuePrimaryAuthentication(array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth3', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
-				// TODO FIXME validate state
+				$state = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE);
+				$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE);
+				if ((!$state) || $state !== $req->state) {
+					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-state-mismatch'));
+				}
 
 				$accessToken = $provider->getAccessToken('authorization_code', [
 					'code' => $req->accessToken
@@ -220,7 +235,16 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		
 				$resourceOwner = $provider->getResourceOwner($accessToken);
 
-				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
+				/*
+				if ($req->autoCreate && $req->username) {
+					$user = \User::newFromName($req->username);
+					if ($user.exists()) { // TODO FIXME race condition
+
+					} else {
+
+					}
+				}
+				*/
 
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 				$dbr = $lb->getConnectionRef( DB_REPLICA );
@@ -230,55 +254,71 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					[ 'amoa_provider', 'amoa_remote_user', 'amoa_local_user' ],
 					[ 'amoa_provider' => $req->provider_name, 'amoa_remote_user' => $resourceOwner->getId() ],
 					__METHOD__,
-	
 				);
 				$reqs = [];
 				foreach ($result as $obj) {
-					// TODO FIXME I think we need something else here
-					wfDebugLog( 'YYYYY', var_export($obj, true) );
-
-					// THIS DOESNT WORK - surprise
 					$user = \User::newFromId($obj->amoa_local_user);
 
-					$req = new OAuthAuthenticationRequest($obj->amoa_local_user, wfMessage('authmanageroauth-choose', $user->getName()), wfMessage('authmanageroauth-choose', $user->getName()));
-					$req->resourceOwnerId = $obj->amoa_remote_user;
-					$req->username = $user->getName(); // TODO FIXME maybe do all this stuff with the userid because it's more stable?
-					$reqs[] = $req;
+					$cur_req = new OAuthAuthenticationRequest($obj->amoa_local_user, wfMessage('authmanageroauth-choose', $user->getName()), wfMessage('authmanageroauth-choose', $user->getName()));
+					$cur_req->amoa_local_user = $obj->amoa_local_user;
+					$cur_req->username = $user->getName(); // TODO FIXME unregistered attribute
+					$reqs[] = $cur_req;
 				}
-				wfDebugLog( 'BBBBBBB', var_export($reqs, true) );
-
-				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose'));
-
-				//return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
+				if (count($reqs) === 0) {
+					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-no-linked-accounts'));
+					/*$test = \MediaWiki\Auth\AuthenticationResponse::newPass(null);
+					$test->createRequest = $req;
+					$test->linkRequest = $req;
+					return $test;*/
+					//$req->autoCreate = true;
+					//return \MediaWiki\Auth\AuthenticationResponse::newUI([$req], wfMessage('authmanageroauth-autocreate'));;
+				} else {
+					$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
+						'provider' => $req->provider_name,
+						'id' => $resourceOwner->getId(),
+					]);
+					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
+				}
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
 		} else {
-			$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
-			if ($req !== null) {
-					return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
+			$auth_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
+			if ($auth_req !== null) {
+				$auth_data = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
+				if ($auth_data) {
+					$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
+					// TODO FIXME validate username (not needed you cant spoof them)
+					// still a TOC TOU vuln
+					return \MediaWiki\Auth\AuthenticationResponse::newPass($auth_req->username);
+				} else {
+					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-abc'));
+				}
 			} else {
-				return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
+				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-def'));
 			}
 		}
+		return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 	}
 
 	function continuePrimaryAccountLink($user, array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth3', var_export($reqs, true) );
+		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountLink', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
-				// TODO FIXME validate state
+				$state = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE);
+				$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE);
+				if ((!$state) || $state !== $req->state) {
+					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-state-mismatch'));
+				}
 
 				$accessToken = $provider->getAccessToken('authorization_code', [
 					'code' => $req->accessToken
 				]);
 		
 				$resourceOwner = $provider->getResourceOwner($accessToken);
-
-				wfDebugLog( 'AuthManagerOAuth3', var_export($resourceOwner->getId(), true) );
 
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 				$dbr = $lb->getConnectionRef( DB_PRIMARY );
@@ -292,7 +332,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					__METHOD__,
 				);
 
-				return \MediaWiki\Auth\AuthenticationResponse::newPass($resourceOwner->toArray()['login']);
+				return \MediaWiki\Auth\AuthenticationResponse::newPass();
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
@@ -302,7 +342,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	function finishAccountCreation($user, $creator, \MediaWiki\Auth\AuthenticationResponse $response) {
-		wfDebugLog( 'IIIIIII', var_export($response, true) );
+		wfDebugLog( 'AuthManagerOAuth finishAccountCreation', var_export($response, true) );
 		$req = $response->createRequest;
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnectionRef( DB_PRIMARY );
