@@ -32,7 +32,7 @@ class LocalUsernameInputRequest extends AuthenticationRequest {
         return [
             'local_username' => [
                 'type' => 'string',
-                'value' => $this->username,
+                'value' => $this->local_username,
                 'label' => wfMessage( 'oauthmanageroauth-login-with-username' ),
                 'help' => wfMessage( 'oauthmanageroauth-login-with-username' ),
             ],

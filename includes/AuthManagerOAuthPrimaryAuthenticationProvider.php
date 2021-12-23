@@ -209,12 +209,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$reqs[] = new ChooseLocalAccountRequest($obj->amoa_local_user, $user->getName());
 			}
 			$reqs[] = $create_user_req;
+			$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
+				'provider' => $req->amoa_provider,
+				'id' => $resp->linkRequest->amoa_remote_user,
+			]);
 			if (count($reqs) === 2) {
-				$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
-					'provider' => $req->amoa_provider,
-					'id' => $resp->linkRequest->amoa_remote_user,
-				]);
-				return \MediaWiki\Auth\AuthenticationResponse::newUI([$resp->loginRequest, $create_user_req], wfMessage('authmanageroauth-autocreate'));;
+				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-autocreate'));;
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
 			}
