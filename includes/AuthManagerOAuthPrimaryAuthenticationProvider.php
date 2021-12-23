@@ -36,9 +36,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
 				// TODO Button-like Request with just the provider name
-				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-' . $action, $provider_name), wfMessage('authmanageroauth-' . $action, $provider_name));
-				$a_req->provider_name = $provider_name;
-				$reqs[] = $a_req;
+				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-' . $action, $provider_name), wfMessage('authmanageroauth-' . $action, $provider_name));
 			}
 			return $reqs;
 		}
@@ -55,11 +53,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			);
 			$reqs = [];
 			foreach ($result as $obj) {
-				// id not unique - hashing would probably work
-				$req = new OAuthUnlinkAuthenticationRequest($obj->amoa_provider . $obj->amoa_remote_user, wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
-				$req->amoa_provider = $obj->amoa_provider;
-				$req->amoa_remote_user = $obj->amoa_remote_user;
-				$reqs[] = $req;
+				$reqs[] = new OAuthUnlinkAuthenticationRequest($obj->amoa_provider, $obj->amoa_remote_user);
 			}
 			return $reqs;
 		}
@@ -72,7 +66,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
 		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export($req, true) );
-		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
+		if (get_class( $req ) === OAuthUnlinkAuthenticationRequest::class &&
 			($req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE)) {
 			return \StatusValue::newGood();
 		}
@@ -81,7 +75,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
 		wfDebugLog( 'AuthManagerOAuth providerChangeAuthenticationData', var_export($req, true) );
-		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
+		if (get_class( $req ) === OAuthUnlinkAuthenticationRequest::class &&
 			($req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE)) {
 			$user = \User::newFromName( $req->username );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();

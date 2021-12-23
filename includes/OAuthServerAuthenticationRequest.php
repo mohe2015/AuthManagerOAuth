@@ -23,16 +23,7 @@ use MediaWiki\Auth\AuthenticationRequest;
 
 class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
-	// TODO REMOVE
-	public $accessToken;
-
 	public $state;
-
-	// TODO REMOVE
-	public $resourceOwnerId;
-
-	// TODO REMOVE
-	public $autoCreate;
 
 	public $errorCode;
 
@@ -41,7 +32,6 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
     function __construct($provider_name) {
         $this->provider_name = $provider_name;
-		$this->autoCreate = null;
     }
 
 	// We saw this form when we did manual submission of the oauth redirect so fix the messages
@@ -67,15 +57,6 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 				'optional' => true,
 			],
 		];
-		// TODO REMOVE
-		if ($this->autoCreate) {
-			$result['username'] = [
-				'type' => 'string',
-				'value' => $this->autoCreate,
-				'label' => wfMessage('authmanageroauth-test'),
-				'help' => wfMessage('authmanageroauth-test'),
-			];
-		}
 		return $result;
 	}
 
@@ -100,13 +81,5 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 			return true;
 		}
 		return false;
-	}
-
-	// TODO probably remove
-	public function describeCredentials() {
-		return [
-            "provider" => new \RawMessage( '$1 OAuth', [ $this->amoa_provider ] ),
-            "account" => new \RawMessage( '$1', [ $this->amoa_remote_user ] )
-        ];
 	}
 }

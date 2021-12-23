@@ -26,7 +26,8 @@ class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
 
     public $amoa_provider;
 
-    function __construct($id, \Message $label, \Message $help) {
-        parent::__construct("oauthmanageroauth-$id", $label, $help, true);
+    function __construct($amoa_provider, \Message $label, \Message $help) {
+        parent::__construct("oauthmanageroauth-$amoa_provider", $label, $help, true);
+        $this->amoa_provider = $amoa_provider;
     }
 }
