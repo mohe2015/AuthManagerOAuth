@@ -64,8 +64,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 			return $reqs;
 		}
-		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
-			 $action ===  \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) {
+		if ( $options['username'] && ($action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
+			 $action ===  \MediaWiki\Auth\AuthManager::ACTION_CHANGE) ) {
 			$user = \User::newFromName( $options['username'] );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_REPLICA );
