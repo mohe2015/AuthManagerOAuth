@@ -23,13 +23,20 @@ use MediaWiki\Auth\ButtonAuthenticationRequest;
 
 class UnlinkOAuthAccountRequest extends ButtonAuthenticationRequest {
 
+	/** @var string The OAuth Provider */
 	public $amoa_provider;
 
+	/** @var string The OAuth remote user id */
 	public $amoa_remote_user;
 
-	function __construct( $amoa_provider, $amoa_remote_user ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( $amoa_provider, $amoa_remote_user ) {
 		// id not unique - hashing would probably work
-		parent::__construct( "oauthmanageroauth-$amoa_provider-$amoa_remote_user", wfMessage( 'authmanageroauth-remove', $amoa_provider, $amoa_remote_user ), wfMessage( 'authmanageroauth-remove', $amoa_provider, $amoa_remote_user ) );
+		parent::__construct( "oauthmanageroauth-$amoa_provider-$amoa_remote_user",
+			wfMessage( 'authmanageroauth-remove', $amoa_provider, $amoa_remote_user ),
+			wfMessage( 'authmanageroauth-remove', $amoa_provider, $amoa_remote_user ) );
 		$this->amoa_provider = $amoa_provider;
 		$this->amoa_remote_user = $amoa_remote_user;
 	}
