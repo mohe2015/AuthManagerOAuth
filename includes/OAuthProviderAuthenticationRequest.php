@@ -19,15 +19,66 @@
 
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
-use MediaWiki\Auth\ButtonAuthenticationRequest;
-use \MediaWiki\Auth\AuthManager;
+use MediaWiki\Auth\AuthenticationRequest;
 
-class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
+class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
 
-    public $amoa_provider;
+	public $state;
 
-    function __construct($amoa_provider, \Message $label, \Message $help) {
-        parent::__construct("oauthmanageroauth-$amoa_provider", $label, $help, true);
+	public $errorCode;
+
+	public $amoa_provider;
+
+    function __construct($amoa_provider) {
         $this->amoa_provider = $amoa_provider;
     }
+
+	// We saw this form when we did manual submission of the oauth redirect so fix the messages
+	// TODO also fix it if we get an error message - I think we don't handle that currently
+	public function getFieldInfo() {
+		$result = [
+			'error' => [
+				'type' => 'string',
+				'label' => wfMessage('authmanageroauth-test'),
+				'help' => wfMessage('authmanageroauth-test'),
+				'optional' => true,
+			],
+			'code' => [
+				'type' => 'string',
+				'label' => wfMessage('authmanageroauth-test'),
+				'help' => wfMessage('authmanageroauth-test'),
+				'optional' => true,
+			],
+			'state' => [
+				'type' => 'string',
+				'label' => wfMessage('authmanageroauth-test'),
+				'help' => wfMessage('authmanageroauth-test'),
+				'optional' => true,
+			],
+		];
+		return $result;
+	}
+
+	/**
+	 * Load data from query parameters in an OAuth return URL
+	 * @param array $data Submitted data as an associative array
+	 * @return bool
+	 */
+	public function loadFromSubmission( array $data ) {
+		if ( isset( $data['username'] ) ) {
+			$this->username = $data['username'];
+		}
+
+		if ( isset( $data['code'] ) && isset( $data['state'] )  ) {
+			$this->accessToken = $data['code'];
+			$this->state = $data['state'];
+			return true;
+		}
+
+		if ( isset( $data['error'] ) ) {
+			$this->errorCode = $data['error'];
+			return true;
+		}
+		return false;
+	}
 }

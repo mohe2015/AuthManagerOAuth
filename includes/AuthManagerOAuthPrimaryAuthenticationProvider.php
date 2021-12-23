@@ -168,16 +168,22 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function continuePrimaryAuthentication(array $reqs) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export($reqs, true) );
-		// custom start
-		if ($req->autoCreate && $req->username) {
-			$user = \User::newFromName($req->username);
+		
+		$identity_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthIdentityRequest::class);
+		if ($identity_req !== null) {
+			$choose_local_account_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, ChooseLocalAccountRequest::class);
+			if ($choose_local_account_req !== null) {
+				return \MediaWiki\Auth\AuthenticationResponse::newPass($choose_local_account_req->username);
+			}
+
+			$choose_local_username_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, LocalUsernameInputRequest::class);
+			$user = \User::newFromName($choose_local_username_req->username);
 			if (!$user->isRegistered()) { // race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
-				return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
+				return \MediaWiki\Auth\AuthenticationResponse::newPass($choose_local_username_req->username);
 			} else {
-				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-yeah-fuck-no'));
+				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-account-already-exists'));
 			}
 		}
-		// custom end
 
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
@@ -198,27 +204,17 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$reqs = [$resp->loginRequest];
 			foreach ($result as $obj) {
 				$user = \User::newFromId($obj->amoa_local_user);
-
-				$cur_req = new OAuthChooseLocalAccountRequest($obj->amoa_local_user, wfMessage('authmanageroauth-choose', $user->getName()), wfMessage('authmanageroauth-choose', $user->getName()));
-				$cur_req->username = $user->getName(); // TODO FIXME unregistered attribute
-				$reqs[] = $cur_req;
+				$reqs[] = new ChooseLocalAccountRequest($obj->amoa_local_user, $user->getName());
 			}
 			if (count($reqs) === 1) {
 				$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
 					'provider' => $req->provider_name,
 					'id' => $resourceOwner->getId(),
 				]);
-				$req = new OAuthChooseLocalUsernameRequest($resourceOwner->toArray()['login']); // TODO FIXME provider dependent path
+				$req = new LocalUsernameInputRequest($resourceOwner->toArray()['login']); // TODO FIXME provider dependent path
 				return \MediaWiki\Auth\AuthenticationResponse::newUI([$resp->loginRequest, $req], wfMessage('authmanageroauth-autocreate'));;
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
-			}
-		} else {
-			$auth_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthIdentityAuthenticationRequest::class);
-			if ($auth_req !== null) {
-				return \MediaWiki\Auth\AuthenticationResponse::newPass($auth_req->username);
-			} else {
-				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-def'));
 			}
 		}
 		return \MediaWiki\Auth\AuthenticationResponse::newAbstain();

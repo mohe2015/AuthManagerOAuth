@@ -19,26 +19,16 @@
 
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
-use MediaWiki\Auth\ButtonAuthenticationRequest;
-use \MediaWiki\Auth\AuthManager;
+use MediaWiki\Auth\AuthenticationRequest;
 
-class OAuthUnlinkAuthenticationRequest extends ButtonAuthenticationRequest {
+class OAuthIdentityRequest extends AuthenticationRequest {
 
-    public $amoa_provider;
+	public $amoa_remote_user;
 
-    public $amoa_remote_user;
+	public $amoa_provider;
 
     function __construct($amoa_provider, $amoa_remote_user) {
-        // id not unique - hashing would probably work
-        parent::__construct("oauthmanageroauth-$amoa_provider-$amoa_remote_user", wfMessage('authmanageroauth-remove', $amoa_provider, $amoa_remote_user), wfMessage('authmanageroauth-remove', $amoa_provider, $amoa_remote_user));
         $this->amoa_provider = $amoa_provider;
-        $this->amoa_remote_user = $amoa_remote_user;
+		$this->amoa_remote_user = $amoa_remote_user;
     }
-
-    public function describeCredentials() {
-		return [
-            "provider" => new \RawMessage( '$1 OAuth', [ $this->amoa_provider ] ),
-            "account" => new \RawMessage( '$1', [ $this->amoa_remote_user ] )
-        ];
-	}
 }
