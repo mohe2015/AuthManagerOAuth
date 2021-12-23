@@ -21,16 +21,14 @@ namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use MediaWiki\Auth\AuthenticationRequest;
 
-class OAuthServerAuthenticationRequest extends AuthenticationRequest {
+class OAuthIdentityAuthenticationRequest extends AuthenticationRequest {
 
-	public $accessToken;
+	public $amoa_remote_user;
 
-	public $resourceOwnerId;
+	public $amoa_provider;
 
-	public $provider_name;
-
-    function __construct($provider_name) {
-        $this->provider_name = $provider_name;
-		$this->autoCreate = null;
+    function __construct($amoa_provider, $amoa_remote_user) {
+        $this->amoa_provider = $amoa_provider;
+		$this->amoa_remote_user = $amoa_remote_user;
     }
 }

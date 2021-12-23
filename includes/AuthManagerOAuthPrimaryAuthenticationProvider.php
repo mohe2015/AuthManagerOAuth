@@ -143,7 +143,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			]);
 	
 			$resourceOwner = $provider->getResourceOwner($accessToken);
-			$req->resourceOwnerId = $resourceOwner->getId();
+
+			$req = new OAuthIdentityAuthenticationRequest($req->provider_name, $resourceOwner->getId());
 
 			$response = \MediaWiki\Auth\AuthenticationResponse::newPass();
 			$response->createRequest = $req;
@@ -242,22 +243,20 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				return $resp;
 			}
 
-			// custom start
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_PRIMARY );
 			$result = $dbr->insert(
 				'authmanageroauth_linked_accounts',
 				[
 					'amoa_local_user' => $user->getId(),
-					'amoa_provider' => $req->provider_name,
-					'amoa_remote_user' => $resourceOwner->getId(),
+					'amoa_provider' => $resp->linkRequest->amoa_provider,
+					'amoa_remote_user' => $resp->linkRequest->amoa_remote_user,
 				],
 				__METHOD__,
 				[
 					'IGNORE'
 				]
 			);
-			// custom end
 
 			return \MediaWiki\Auth\AuthenticationResponse::newPass();
 		} else {

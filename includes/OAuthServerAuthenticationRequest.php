@@ -27,7 +27,6 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
 	public $errorCode;
 
-	// TODO REMOVE (MAYBE NOT)
 	public $provider_name;
 
     function __construct($provider_name) {
