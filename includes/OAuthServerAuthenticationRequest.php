@@ -23,16 +23,20 @@ use MediaWiki\Auth\AuthenticationRequest;
 
 class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
+	// TODO REMOVE
 	public $accessToken;
 
 	public $state;
 
+	// TODO REMOVE
 	public $resourceOwnerId;
 
+	// TODO REMOVE
 	public $autoCreate;
 
 	public $errorCode;
 
+	// TODO REMOVE (MAYBE NOT)
 	public $provider_name;
 
     function __construct($provider_name) {
@@ -63,6 +67,7 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 				'optional' => true,
 			],
 		];
+		// TODO REMOVE
 		if ($this->autoCreate) {
 			$result['username'] = [
 				'type' => 'string',
@@ -97,6 +102,7 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 		return false;
 	}
 
+	// TODO probably remove
 	public function describeCredentials() {
 		return [
             "provider" => new \RawMessage( '$1 OAuth', [ $this->amoa_provider ] ),

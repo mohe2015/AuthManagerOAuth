@@ -208,6 +208,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				foreach ($result as $obj) {
 					$user = \User::newFromId($obj->amoa_local_user);
 
+					// add the one oauthidentityauthenticationrequest and then add a second chooserequest that is specific for this
 					$cur_req = new OAuthAuthenticationRequest($obj->amoa_local_user, wfMessage('authmanageroauth-choose', $user->getName()), wfMessage('authmanageroauth-choose', $user->getName()));
 					$cur_req->amoa_local_user = $obj->amoa_local_user;
 					$cur_req->username = $user->getName(); // TODO FIXME unregistered attribute
@@ -219,6 +220,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 						'provider' => $req->provider_name,
 						'id' => $resourceOwner->getId(),
 					]);
+					// TODO FIXME add the oauthidentityrequest and add an additional username-only saving autocreateauthrequest
 					return \MediaWiki\Auth\AuthenticationResponse::newUI([$req], wfMessage('authmanageroauth-autocreate'));;
 				} else {
 					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
