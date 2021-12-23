@@ -27,19 +27,19 @@ class OAuthIdentityRequest extends AuthenticationRequest {
 
 	public $amoa_provider;
 
-    public $username;
-    
-    function __construct($amoa_provider, $amoa_remote_user, $username) {
-        $this->amoa_provider = $amoa_provider;
+	public $username;
+
+	function __construct( $amoa_provider, $amoa_remote_user, $username ) {
+		$this->amoa_provider = $amoa_provider;
 		$this->amoa_remote_user = $amoa_remote_user;
-        $this->username = $username;
-    }
+		$this->username = $username;
+	}
 
-    public function getFieldInfo() {
-        return [];
-    }
+	public function getFieldInfo() {
+		return [];
+	}
 
-    public function loadFromSubmission( array $data ) {
-        return true;
-    }
+	public function loadFromSubmission( array $data ) {
+		return true;
+	}
 }

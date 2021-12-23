@@ -20,14 +20,13 @@
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use MediaWiki\Auth\ButtonAuthenticationRequest;
-use \MediaWiki\Auth\AuthManager;
 
 class ChooseOAuthProviderRequest extends ButtonAuthenticationRequest {
 
-    public $amoa_provider;
+	public $amoa_provider;
 
-    function __construct($amoa_provider, $action) {
-        parent::__construct("oauthmanageroauth-provider-$amoa_provider", wfMessage('authmanageroauth-' . $action, $amoa_provider), wfMessage('authmanageroauth-' . $action, $amoa_provider), true);
-        $this->amoa_provider = $amoa_provider;
-    }
+	function __construct( $amoa_provider, $action ) {
+		parent::__construct( "oauthmanageroauth-provider-$amoa_provider", wfMessage( 'authmanageroauth-' . $action, $amoa_provider ), wfMessage( 'authmanageroauth-' . $action, $amoa_provider ), true );
+		$this->amoa_provider = $amoa_provider;
+	}
 }

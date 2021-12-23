@@ -18,24 +18,25 @@
  */
 
 namespace MediaWiki\Extension\AuthManagerOAuth;
+
 use MediaWiki\Auth\AuthenticationRequest;
 
 class LocalUsernameInputRequest extends AuthenticationRequest {
 
-    public $local_username;
+	public $local_username;
 
-    function __construct($username) {
-        $this->local_username = $username;
-    }
-    
-    public function getFieldInfo() {
-        return [
-            'local_username' => [
-                'type' => 'string',
-                'value' => $this->local_username,
-                'label' => wfMessage( 'oauthmanageroauth-login-with-username' ),
-                'help' => wfMessage( 'oauthmanageroauth-login-with-username' ),
-            ],
-        ];
-  }
+	function __construct( $username ) {
+		$this->local_username = $username;
+	}
+
+	public function getFieldInfo() {
+		return [
+			'local_username' => [
+				'type' => 'string',
+				'value' => $this->local_username,
+				'label' => wfMessage( 'oauthmanageroauth-login-with-username' ),
+				'help' => wfMessage( 'oauthmanageroauth-login-with-username' ),
+			],
+		];
+	}
 }

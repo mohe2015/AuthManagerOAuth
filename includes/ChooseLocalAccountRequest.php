@@ -20,16 +20,15 @@
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use MediaWiki\Auth\ButtonAuthenticationRequest;
-use \MediaWiki\Auth\AuthManager;
 
 class ChooseLocalAccountRequest extends ButtonAuthenticationRequest {
 
-    public $amoa_local_user;
-    public $username;
+	public $amoa_local_user;
+	public $username;
 
-    function __construct($amoa_local_user, $username) {
-        parent::__construct("oauthmanageroauth-local-user-$amoa_local_user", wfMessage('authmanageroauth-choose', $username), wfMessage('authmanageroauth-choose', $username), true);
-        $this->amoa_local_user = $amoa_local_user;
-        $this->username = $username;
-    }
+	function __construct( $amoa_local_user, $username ) {
+		parent::__construct( "oauthmanageroauth-local-user-$amoa_local_user", wfMessage( 'authmanageroauth-choose', $username ), wfMessage( 'authmanageroauth-choose', $username ), true );
+		$this->amoa_local_user = $amoa_local_user;
+		$this->username = $username;
+	}
 }

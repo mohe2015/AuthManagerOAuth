@@ -21,26 +21,26 @@ namespace MediaWiki\Extension\AuthManagerOAuth;
 
 class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook {
 
-	public function onLoadExtensionSchemaUpdates($updater) {
+	public function onLoadExtensionSchemaUpdates( $updater ) {
 		$updater->addExtensionTable(
 			'authmanageroauth_linked_accounts',
-			dirname( __FILE__ ) . '/sql/authmanageroauth_linked_accounts.sql'
+			__DIR__ . '/sql/authmanageroauth_linked_accounts.sql'
 		);
 	}
 
 	public static function onAuthChangeFormFields( $requests, $fieldInfo, &$formDescriptor, $action ) {
 		// the ones without weight come first, then all with weight ordered ascending
-		foreach ($formDescriptor as $key => $value) {
-			if (str_starts_with($key, "oauthmanageroauth-provider-")) {
+		foreach ( $formDescriptor as $key => $value ) {
+			if ( str_starts_with( $key, "oauthmanageroauth-provider-" ) ) {
 				$formDescriptor[$key]['weight'] = 101;
 			}
-			if (str_starts_with($key, "oauthmanageroauth-local-user")) {
+			if ( str_starts_with( $key, "oauthmanageroauth-local-user" ) ) {
 				$formDescriptor[$key]['weight'] = 98;
 			}
-			if ($key === "local_username") {
+			if ( $key === "local_username" ) {
 				$formDescriptor[$key]['weight'] = 99;
 			}
-			//wfDebugLog( 'AuthManagerOAuth onAuthChangeFormFields', var_export($key . " " . $formDescriptor[$key]['weight'], true) );
+			// wfDebugLog( 'AuthManagerOAuth onAuthChangeFormFields', var_export($key . " " . $formDescriptor[$key]['weight'], true) );
 		}
 	}
 }

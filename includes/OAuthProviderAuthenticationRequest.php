@@ -29,9 +29,9 @@ class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
 
 	public $amoa_provider;
 
-    function __construct($amoa_provider) {
-        $this->amoa_provider = $amoa_provider;
-    }
+	function __construct( $amoa_provider ) {
+		$this->amoa_provider = $amoa_provider;
+	}
 
 	// TODO fix it if we get an error message - I think we don't handle that currently
 	public function getFieldInfo() {
@@ -62,7 +62,7 @@ class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
 			$this->username = $data['username'];
 		}
 
-		if ( isset( $data['code'] ) && isset( $data['state'] )  ) {
+		if ( isset( $data['code'] ) && isset( $data['state'] ) ) {
 			$this->accessToken = $data['code'];
 			$this->state = $data['state'];
 			return true;
