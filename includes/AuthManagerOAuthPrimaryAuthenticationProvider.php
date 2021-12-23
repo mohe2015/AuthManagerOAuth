@@ -32,8 +32,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN || $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE || $action === \MediaWiki\Auth\AuthManager::ACTION_LINK ) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
-			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				$reqs[] = new ChooseOAuthProviderRequest($provider_name, $action);
+			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $amoa_provider => $provider) {
+				$reqs[] = new ChooseOAuthProviderRequest($amoa_provider, $action);
 			}
 			return $reqs;
 		}
@@ -63,7 +63,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
 		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export($req, true) );
-		if (get_class( $req ) === OAuthUnlinkAuthenticationRequest::class &&
+		if (get_class( $req ) === UnlinkOAuthAccountRequest::class &&
 			($req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE)) {
 			return \StatusValue::newGood();
 		}
@@ -72,7 +72,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function providerChangeAuthenticationData(\MediaWiki\Auth\AuthenticationRequest $req) {
 		wfDebugLog( 'AuthManagerOAuth providerChangeAuthenticationData', var_export($req, true) );
-		if (get_class( $req ) === OAuthUnlinkAuthenticationRequest::class &&
+		if (get_class( $req ) === UnlinkOAuthAccountRequest::class &&
 			($req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE)) {
 			$user = \User::newFromName( $req->username );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -95,18 +95,17 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	
 	function beginPrimary(array $reqs) {
 		wfDebugLog( 'AuthManagerOAuth beginPrimary*', var_export($reqs, true) );
-		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, ChooseOAuthProviderRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
-			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
+			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->amoa_provider]);
 			$authorizationUrl = $provider->getAuthorizationUrl([
 				'redirect_uri' => $req->returnToUrl
 			]);
 
 			$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
 
-			// TODO Server authentication request that will contain the data to prove authentication
-			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthProviderAuthenticationRequest($req->amoa_provider)], $authorizationUrl, null);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
@@ -124,9 +123,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		return $this->beginPrimary($reqs);
 	}
 
-	function convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req) {
+	function convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest($req) {
 		$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
-		$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
+		$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->amoa_provider]);
 		try {
 			// TODO do we even need this authentication data or can we just store this in the authentication request. ensure again that both of it can't be manipulated
 			$state = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE);
@@ -141,7 +140,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	
 			$resourceOwner = $provider->getResourceOwner($accessToken);
 
-			$req = new OAuthIdentityAuthenticationRequest($req->provider_name, $resourceOwner->getId());
+			$req = new OAuthIdentityRequest($req->amoa_provider, $resourceOwner->getId());
 
 			$response = \MediaWiki\Auth\AuthenticationResponse::newPass();
 			$response->createRequest = $req;
@@ -155,9 +154,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function continuePrimaryAccountCreation($user, $creator, array $reqs) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountCreation', var_export($reqs, true) );
-		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthProviderAuthenticationRequest::class);
 		if ($req !== null) {
-			return $this->convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req);
+			return $this->convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest($req);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
@@ -182,9 +181,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 		}
 
-		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthProviderAuthenticationRequest::class);
 		if ($req !== null) {
-			$resp = $this->convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req);
+			$resp = $this->convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest($req);
 			if ($resp->status !== \MediaWiki\Auth\AuthenticationResponse::PASS) {
 				return $resp;
 			}
@@ -195,7 +194,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$result = $dbr->select(
 				'authmanageroauth_linked_accounts',
 				[ 'amoa_provider', 'amoa_remote_user', 'amoa_local_user' ],
-				[ 'amoa_provider' => $req->provider_name, 'amoa_remote_user' => $resourceOwner->getId() ],
+				[ 'amoa_provider' => $req->amoa_provider, 'amoa_remote_user' => $resourceOwner->getId() ],
 				__METHOD__,
 			);
 			$reqs = [$resp->loginRequest];
@@ -205,7 +204,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 			if (count($reqs) === 1) {
 				$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
-					'provider' => $req->provider_name,
+					'provider' => $req->amoa_provider,
 					'id' => $resourceOwner->getId(),
 				]);
 				$req = new LocalUsernameInputRequest($resourceOwner->toArray()['login']); // TODO FIXME provider dependent path
@@ -219,9 +218,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function continuePrimaryAccountLink($user, array $reqs) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountLink', var_export($reqs, true) );
-		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
+		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthProviderAuthenticationRequest::class);
 		if ($req !== null) {
-			$resp = $this->convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req);
+			$resp = $this->convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest($req);
 			if ($resp->status !==  \MediaWiki\Auth\AuthenticationResponse::PASS) {
 				return $resp;
 			}
