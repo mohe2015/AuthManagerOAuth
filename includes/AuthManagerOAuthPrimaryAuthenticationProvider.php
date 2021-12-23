@@ -147,6 +147,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 			$response = \MediaWiki\Auth\AuthenticationResponse::newPass();
 			$response->createRequest = $req;
+			$response->linkRequest = $req;
+			$response->loginRequest = $req;
 			return $response;
 		} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 			return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
@@ -157,8 +159,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountCreation', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
-			$resp = $this->convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req);
-			return $resp;
+			return $this->convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req);
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
@@ -180,6 +181,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
 			$resp = $this->convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req);
+			if ($resp->status !==  \MediaWiki\Auth\AuthenticationResponse::PASS) {
+				return $resp;
+			}
 
 			// custom start
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -234,6 +238,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
 			$resp = $this->convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req);
+			if ($resp->status !==  \MediaWiki\Auth\AuthenticationResponse::PASS) {
+				return $resp;
+			}
 
 			// custom start
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
