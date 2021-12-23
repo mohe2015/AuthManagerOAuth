@@ -31,34 +31,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function getAuthenticationRequests($action, array $options) {
 		wfDebugLog( 'AuthManagerOAuth getAuthenticationRequests', var_export($action, true) );
-		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN ) {
+		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN || $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE || $action === \MediaWiki\Auth\AuthManager::ACTION_LINK ) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
 				// TODO Button-like Request with just the provider name
-				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-login', $provider_name), wfMessage('authmanageroauth-login', $provider_name));
-				$a_req->provider_name = $provider_name;
-				$reqs[] = $a_req;
-			}
-			return $reqs;
-		}
-		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE ) {
-			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
-			$reqs = [];
-			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				// TODO Button-like Request with just the provider name
-				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-create', $provider_name), wfMessage('authmanageroauth-create', $provider_name));
-				$a_req->provider_name = $provider_name;
-				$reqs[] = $a_req;
-			}
-			return $reqs;
-		}
-		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LINK ) {
-			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
-			$reqs = [];
-			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				// TODO Button-like Request with just the provider name
-				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-link', $provider_name), wfMessage('authmanageroauth-link', $provider_name));
+				$a_req = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-' . $action, $provider_name), wfMessage('authmanageroauth-' . $action, $provider_name));
 				$a_req->provider_name = $provider_name;
 				$reqs[] = $a_req;
 			}

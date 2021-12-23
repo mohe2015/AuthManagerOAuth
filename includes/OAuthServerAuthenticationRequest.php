@@ -22,11 +22,7 @@ namespace MediaWiki\Extension\AuthManagerOAuth;
 use MediaWiki\Auth\AuthenticationRequest;
 
 class OAuthServerAuthenticationRequest extends AuthenticationRequest {
-	/**
-	 * Verification code provided by the server. Needs to be sent back in the last leg of the
-	 * authorization process.
-	 * @var string
-	 */
+
 	public $accessToken;
 
 	public $state;
@@ -35,10 +31,6 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
 	public $autoCreate;
 
-	/**
-	 * An error code returned in case of Authentication failure
-	 * @var string
-	 */
 	public $errorCode;
 
 	public $provider_name;
