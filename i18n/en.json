@@ -4,6 +4,7 @@
 			"Your Name"
 		]
 	},
+	"oauthmanageroauth-login-with-username": "Create account with username",
 	"authmanageroauth-desc": "This is an example extension",
 	"authmanageroauth-login": "Login with $1 (don't fill out above)",
 	"authmanageroauth-create": "Register with $1 (only fill out username)",

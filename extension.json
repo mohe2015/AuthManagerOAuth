@@ -29,7 +29,8 @@
 		}
 	},
 	"Hooks": {
-		"LoadExtensionSchemaUpdates": "AuthManagerOAuthHooks"
+		"LoadExtensionSchemaUpdates": "AuthManagerOAuthHooks",
+		"AuthChangeFormFields": "AuthManagerOAuthHooks"
 	},
 	"MessagesDirs": {
 		"AuthManagerOAuth": [

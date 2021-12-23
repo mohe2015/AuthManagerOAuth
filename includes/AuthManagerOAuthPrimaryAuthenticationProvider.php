@@ -177,9 +177,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 			$choose_local_username_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, LocalUsernameInputRequest::class);
 			if ($choose_local_username_req !== null) {
-				$user = \User::newFromName($choose_local_username_req->username);
+				$user = \User::newFromName($choose_local_username_req->local_username);
 				if (!$user->isRegistered()) { // TODO FIXME query on primary race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
-					return \MediaWiki\Auth\AuthenticationResponse::newPass($choose_local_username_req->username);
+					return \MediaWiki\Auth\AuthenticationResponse::newPass($choose_local_username_req->local_username);
 				} else {
 					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-account-already-exists'));
 				}

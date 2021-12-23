@@ -27,7 +27,7 @@ class ChooseOAuthProviderRequest extends ButtonAuthenticationRequest {
     public $amoa_provider;
 
     function __construct($amoa_provider, $action) {
-        parent::__construct("oauthmanageroauth-$amoa_provider", wfMessage('authmanageroauth-' . $action, $amoa_provider), wfMessage('authmanageroauth-' . $action, $amoa_provider), true);
+        parent::__construct("oauthmanageroauth-provider-$amoa_provider", wfMessage('authmanageroauth-' . $action, $amoa_provider), wfMessage('authmanageroauth-' . $action, $amoa_provider), true);
         $this->amoa_provider = $amoa_provider;
     }
 }

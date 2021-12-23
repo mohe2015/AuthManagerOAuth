@@ -22,15 +22,15 @@ use MediaWiki\Auth\AuthenticationRequest;
 
 class LocalUsernameInputRequest extends AuthenticationRequest {
 
-    public $username;
+    public $local_username;
 
     function __construct($username) {
-        $this->username = $username;
+        $this->local_username = $username;
     }
     
     public function getFieldInfo() {
         return [
-            'username' => [
+            'local_username' => [
                 'type' => 'string',
                 'value' => $this->username,
                 'label' => wfMessage( 'oauthmanageroauth-login-with-username' ),

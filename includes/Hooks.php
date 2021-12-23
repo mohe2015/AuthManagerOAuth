@@ -27,4 +27,17 @@ class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook 
 			dirname( __FILE__ ) . '/sql/authmanageroauth_linked_accounts.sql'
 		);
 	}
+
+	public static function onAuthChangeFormFields( $requests, $fieldInfo, &$formDescriptor, $action ) {
+		// the ones without weight come first, then all with weight ordered ascending
+		foreach ($formDescriptor as $key => $value) {
+			if (str_starts_with($key, "oauthmanageroauth-provider-")) {
+				$formDescriptor[$key]['weight'] = 101;
+			}
+			if (str_starts_with($key, "oauthmanageroauth-local-user")) {
+				$formDescriptor[$key]['weight'] = 101;
+			}
+			wfDebugLog( 'AuthManagerOAuth onAuthChangeFormFields', var_export($key . " " . $formDescriptor[$key]['weight'], true) );
+		}
+	}
 }
