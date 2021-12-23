@@ -27,10 +27,10 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
 	public $errorCode;
 
-	public $provider_name;
+	public $amoa_provider;
 
-    function __construct($provider_name) {
-        $this->provider_name = $provider_name;
+    function __construct($amoa_provider) {
+        $this->amoa_provider = $amoa_provider;
     }
 
 	// We saw this form when we did manual submission of the oauth redirect so fix the messages
