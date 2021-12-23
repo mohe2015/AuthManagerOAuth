@@ -24,8 +24,6 @@ use MediaWiki\Auth\AuthenticationResponse;
 
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
-	//wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
-
 	const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
 	const AUTHENTICATION_SESSION_DATA_REMOTE_USER = 'authmanageroauth:remote-user';
 
@@ -35,12 +33,11 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$reqs = [];
 			foreach ($config->get( 'AuthManagerOAuthConfig' ) as $provider_name => $provider) {
-				// TODO Button-like Request with just the provider name
-				$reqs[] = new OAuthAuthenticationRequest($provider_name, wfMessage('authmanageroauth-' . $action, $provider_name), wfMessage('authmanageroauth-' . $action, $provider_name));
+				$reqs[] = new ChooseOAuthProviderRequest($provider_name, $action);
 			}
 			return $reqs;
 		}
-		if ( $options['username'] && ($action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
+		if ( $options['username'] !== null && ($action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
 			 $action ===  \MediaWiki\Auth\AuthManager::ACTION_CHANGE) ) {
 			$user = \User::newFromName( $options['username'] );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
