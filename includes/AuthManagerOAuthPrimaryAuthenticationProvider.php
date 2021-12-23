@@ -73,11 +73,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	function providerAllowsAuthenticationDataChange(\MediaWiki\Auth\AuthenticationRequest $req, $checkData = true) {
 		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export($req, true) );
 		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
-			$req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE) {
-			return \StatusValue::newGood();
-		}
-		if (get_class( $req ) === OAuthAuthenticationRequest::class &&
-			$req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE) {
+			($req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE)) {
 			return \StatusValue::newGood();
 		}
 		return \StatusValue::newGood('ignored');
@@ -106,8 +102,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_CREATE;
 	}
 	
-	function beginPrimaryAccountCreation($user, $creator, array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth beginPrimaryAccountCreation', var_export($reqs, true) );
+	function beginPrimary(array $reqs) {
+		wfDebugLog( 'AuthManagerOAuth beginPrimary*', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 		if ($req !== null) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
@@ -123,44 +119,18 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
+	}
+
+	function beginPrimaryAccountCreation($user, $creator, array $reqs) {
+		return $this->beginPrimary($reqs);
 	}
 
 	function beginPrimaryAuthentication(array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth beginPrimaryAuthentication', var_export($reqs, true) );
-		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
-		if ($req !== null) {
-			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
-			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
-			$authorizationUrl = $provider->getAuthorizationUrl([
-				'redirect_uri' => $req->returnToUrl
-			]);
-
-			$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
-
-			// TODO Server authentication request that will contain the data to prove authentication
-			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
-		} else {
-			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
-		}
+		return $this->beginPrimary($reqs);
 	}
 
 	function beginPrimaryAccountLink($user, array $reqs) {
-		wfDebugLog( 'AuthManagerOAuth beginPrimaryAccountLink', var_export($reqs, true) );
-		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
-		if ($req !== null) {
-			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
-			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
-			$authorizationUrl = $provider->getAuthorizationUrl([
-				'redirect_uri' => $req->returnToUrl
-			]);
-
-			$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_STATE, $provider->getState());
-
-			// TODO Server authentication request that will contain the data to prove authentication
-			return \MediaWiki\Auth\AuthenticationResponse::newRedirect([new OAuthServerAuthenticationRequest($req->provider_name)], $authorizationUrl, null);
-		} else {
-			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
-		}
+		return $this->beginPrimary($reqs);
 	}
 
 	function continuePrimaryAccountCreation($user, $creator, array $reqs) {
