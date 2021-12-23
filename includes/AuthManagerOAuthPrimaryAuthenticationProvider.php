@@ -202,18 +202,19 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				[ 'amoa_provider' => $req->amoa_provider, 'amoa_remote_user' => $resp->linkRequest->amoa_remote_user ],
 				__METHOD__,
 			);
+			$create_user_req = new LocalUsernameInputRequest($resp->linkRequest->username);
 			$reqs = [$resp->loginRequest];
 			foreach ($result as $obj) {
 				$user = \User::newFromId($obj->amoa_local_user);
 				$reqs[] = new ChooseLocalAccountRequest($obj->amoa_local_user, $user->getName());
 			}
-			if (count($reqs) === 1) {
+			$reqs[] = $create_user_req;
+			if (count($reqs) === 2) {
 				$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
 					'provider' => $req->amoa_provider,
 					'id' => $resp->linkRequest->amoa_remote_user,
 				]);
-				$req = new LocalUsernameInputRequest($resp->linkRequest->username);
-				return \MediaWiki\Auth\AuthenticationResponse::newUI([$resp->loginRequest, $req], wfMessage('authmanageroauth-autocreate'));;
+				return \MediaWiki\Auth\AuthenticationResponse::newUI([$resp->loginRequest, $create_user_req], wfMessage('authmanageroauth-autocreate'));;
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
 			}
