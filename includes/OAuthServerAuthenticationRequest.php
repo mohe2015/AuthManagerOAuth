@@ -45,7 +45,7 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 
     function __construct($provider_name) {
         $this->provider_name = $provider_name;
-		$this->autoCreate = false;
+		$this->autoCreate = null;
     }
 
 	// We saw this form when we did manual submission of the oauth redirect so fix the messages
@@ -74,7 +74,7 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 		if ($this->autoCreate) {
 			$result['username'] = [
 				'type' => 'string',
-				'value' => 'testusername',
+				'value' => $this->autoCreate,
 				'label' => wfMessage('authmanageroauth-test'),
 				'help' => wfMessage('authmanageroauth-test'),
 			];
