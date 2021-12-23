@@ -40,7 +40,7 @@ class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook 
 			if ($key === "local_username") {
 				$formDescriptor[$key]['weight'] = 99;
 			}
-			wfDebugLog( 'AuthManagerOAuth onAuthChangeFormFields', var_export($key . " " . $formDescriptor[$key]['weight'], true) );
+			//wfDebugLog( 'AuthManagerOAuth onAuthChangeFormFields', var_export($key . " " . $formDescriptor[$key]['weight'], true) );
 		}
 	}
 }

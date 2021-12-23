@@ -33,26 +33,19 @@ class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
         $this->amoa_provider = $amoa_provider;
     }
 
-	// We saw this form when we did manual submission of the oauth redirect so fix the messages
-	// TODO also fix it if we get an error message - I think we don't handle that currently
+	// TODO fix it if we get an error message - I think we don't handle that currently
 	public function getFieldInfo() {
 		$result = [
 			'error' => [
-				'type' => 'string',
-				'label' => wfMessage('authmanageroauth-test'),
-				'help' => wfMessage('authmanageroauth-test'),
+				'type' => 'hidden',
 				'optional' => true,
 			],
 			'code' => [
-				'type' => 'string',
-				'label' => wfMessage('authmanageroauth-test'),
-				'help' => wfMessage('authmanageroauth-test'),
+				'type' => 'hidden',
 				'optional' => true,
 			],
 			'state' => [
-				'type' => 'string',
-				'label' => wfMessage('authmanageroauth-test'),
-				'help' => wfMessage('authmanageroauth-test'),
+				'type' => 'hidden',
 				'optional' => true,
 			],
 		];

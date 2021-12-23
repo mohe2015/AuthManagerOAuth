@@ -214,7 +214,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'id' => $resp->linkRequest->amoa_remote_user,
 			]);
 			if (count($reqs) === 2) {
-				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-autocreate'));;
+				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-username'));;
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
 			}
