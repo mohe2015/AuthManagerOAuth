@@ -140,7 +140,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	
 			$resourceOwner = $provider->getResourceOwner($accessToken);
 
-			$req = new OAuthIdentityRequest($req->amoa_provider, $resourceOwner->getId());
+			$req = new OAuthIdentityRequest($req->amoa_provider, $resourceOwner->getId(), $resourceOwner->toArray()['login']);  // TODO FIXME provider dependent path
 
 			$response = \MediaWiki\Auth\AuthenticationResponse::newPass();
 			$response->createRequest = $req;
@@ -174,7 +174,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 			$choose_local_username_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, LocalUsernameInputRequest::class);
 			$user = \User::newFromName($choose_local_username_req->username);
-			if (!$user->isRegistered()) { // race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
+			if (!$user->isRegistered()) { // TODO FIXME query on primary race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
 				return \MediaWiki\Auth\AuthenticationResponse::newPass($choose_local_username_req->username);
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-account-already-exists'));
@@ -194,7 +194,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$result = $dbr->select(
 				'authmanageroauth_linked_accounts',
 				[ 'amoa_provider', 'amoa_remote_user', 'amoa_local_user' ],
-				[ 'amoa_provider' => $req->amoa_provider, 'amoa_remote_user' => $resourceOwner->getId() ],
+				[ 'amoa_provider' => $req->amoa_provider, 'amoa_remote_user' => $resp->linkRequest->amoa_remote_user ],
 				__METHOD__,
 			);
 			$reqs = [$resp->loginRequest];
@@ -205,9 +205,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			if (count($reqs) === 1) {
 				$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
 					'provider' => $req->amoa_provider,
-					'id' => $resourceOwner->getId(),
+					'id' => $resp->linkRequest->amoa_remote_user,
 				]);
-				$req = new LocalUsernameInputRequest($resourceOwner->toArray()['login']); // TODO FIXME provider dependent path
+				$req = new LocalUsernameInputRequest($resp->linkRequest->username);
 				return \MediaWiki\Auth\AuthenticationResponse::newUI([$resp->loginRequest, $req], wfMessage('authmanageroauth-autocreate'));;
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
