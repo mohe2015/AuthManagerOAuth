@@ -53,10 +53,9 @@
         "primaryauth": {
             "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider": {
                 "class": "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider",
-				"sort": -10000
+				"sort": 0
             }
         }
     },
-	"HiddenPrefs": ["authmanageroauth-pref-userid"],
 	"manifest_version": 2
 }
