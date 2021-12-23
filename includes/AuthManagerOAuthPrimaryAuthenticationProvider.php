@@ -330,6 +330,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 						'amoa_remote_user' => $resourceOwner->getId(),
 					],
 					__METHOD__,
+					[
+						'IGNORE'
+					]
 				);
 
 				return \MediaWiki\Auth\AuthenticationResponse::newPass();
