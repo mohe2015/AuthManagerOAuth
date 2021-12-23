@@ -24,8 +24,6 @@ use \MediaWiki\Auth\AuthManager;
 
 class OAuthAuthenticationRequest extends ButtonAuthenticationRequest {
 
-    public $amoa_local_user;
-
     public $amoa_provider;
 
     public $amoa_remote_user;

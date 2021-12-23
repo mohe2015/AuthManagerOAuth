@@ -56,7 +56,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$reqs = [];
 			foreach ($result as $obj) {
 				// id not unique - hashing would probably work
-				$req = new OAuthAuthenticationRequest($obj->amoa_provider . $obj->amoa_remote_user, wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
+				$req = new OAuthUnlinkAuthenticationRequest($obj->amoa_provider . $obj->amoa_remote_user, wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user), wfMessage('authmanageroauth-remove', $obj->amoa_provider, $obj->amoa_remote_user));
 				$req->amoa_provider = $obj->amoa_provider;
 				$req->amoa_remote_user = $obj->amoa_remote_user;
 				$reqs[] = $req;
@@ -131,6 +131,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	function beginPrimaryAccountLink($user, array $reqs) {
 		return $this->beginPrimary($reqs);
+	}
+
+	function convertOAuthServerAuthenticationRequestToOAuthIdentityAuthenticationRequest($req) {
+
 	}
 
 	function continuePrimaryAccountCreation($user, $creator, array $reqs) {
