@@ -27,7 +27,6 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	//wfDebugLog( 'AuthManagerOAuth1', var_export($action, true) );
 
 	const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
-	const AUTHENTICATION_SESSION_DATA_REMOTE_USER = 'authmanageroauth:remote_user';
 
 	function getAuthenticationRequests($action, array $options) {
 		wfDebugLog( 'AuthManagerOAuth getAuthenticationRequests', var_export($action, true) );
@@ -220,6 +219,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
+			if ($req->autoCreate && $req->username) {
+				$user = \User::newFromName($req->username);
+				// TODO FIXME this probably allows account takeover
+				return \MediaWiki\Auth\AuthenticationResponse::newPass($req->username);
+			}
+
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
 			try {
@@ -234,17 +239,6 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				]);
 		
 				$resourceOwner = $provider->getResourceOwner($accessToken);
-
-				/*
-				if ($req->autoCreate && $req->username) {
-					$user = \User::newFromName($req->username);
-					if ($user.exists()) { // TODO FIXME race condition
-
-					} else {
-
-					}
-				}
-				*/
 
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 				$dbr = $lb->getConnectionRef( DB_REPLICA );
@@ -265,18 +259,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					$reqs[] = $cur_req;
 				}
 				if (count($reqs) === 0) {
-					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-no-linked-accounts'));
-					/*$test = \MediaWiki\Auth\AuthenticationResponse::newPass(null);
-					$test->createRequest = $req;
-					$test->linkRequest = $req;
-					return $test;*/
-					//$req->autoCreate = true;
-					//return \MediaWiki\Auth\AuthenticationResponse::newUI([$req], wfMessage('authmanageroauth-autocreate'));;
+					$req->autoCreate = true;
+					return \MediaWiki\Auth\AuthenticationResponse::newUI([$req], wfMessage('authmanageroauth-autocreate'));;
 				} else {
-					$this->manager->setAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
-						'provider' => $req->provider_name,
-						'id' => $resourceOwner->getId(),
-					]);
 					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
 				}
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
@@ -285,15 +270,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		} else {
 			$auth_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 			if ($auth_req !== null) {
-				$auth_data = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
-				if ($auth_data) {
-					$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
-					// TODO FIXME validate username (not needed you cant spoof them)
-					// still a TOC TOU vuln
-					return \MediaWiki\Auth\AuthenticationResponse::newPass($auth_req->username);
-				} else {
-					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-abc'));
-				}
+				// TODO FIXME validate username (not needed you cant spoof them)
+				// still a TOC TOU vuln
+				return \MediaWiki\Auth\AuthenticationResponse::newPass($auth_req->username);
+				
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-def'));
 			}

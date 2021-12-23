@@ -72,13 +72,11 @@ class OAuthServerAuthenticationRequest extends AuthenticationRequest {
 			],
 		];
 		if ($this->autoCreate) {
-			$result[] = [
-				'username' => [
-					'type' => 'string',
-					'value' => 'testusername',
-					'label' => wfMessage('authmanageroauth-test'),
-					'help' => wfMessage('authmanageroauth-test'),
-				],
+			$result['username'] = [
+				'type' => 'string',
+				'value' => 'testusername',
+				'label' => wfMessage('authmanageroauth-test'),
+				'help' => wfMessage('authmanageroauth-test'),
 			];
 		}
 		return $result;
