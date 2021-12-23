@@ -89,8 +89,11 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		}
 	}
 
+	/**
+	 * This ensures that Special:LinkAccounts and Special:UnlinkAccounts works.
+	 */
 	function accountCreationType() {
-		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_CREATE;
+		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_LINK;
 	}
 	
 	function beginPrimary(array $reqs) {

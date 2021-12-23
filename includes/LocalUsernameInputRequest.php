@@ -18,6 +18,7 @@
  */
 
 namespace MediaWiki\Extension\AuthManagerOAuth;
+use MediaWiki\Auth\AuthenticationRequest;
 
 class LocalUsernameInputRequest extends AuthenticationRequest {
 
