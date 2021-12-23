@@ -38,4 +38,8 @@ class OAuthIdentityRequest extends AuthenticationRequest {
     public function getFieldInfo() {
         return [];
     }
+
+    public function loadFromSubmission( array $data ) {
+        return true;
+    }
 }
