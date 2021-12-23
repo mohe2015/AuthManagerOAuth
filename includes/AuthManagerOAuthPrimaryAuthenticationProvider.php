@@ -168,6 +168,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export($reqs, true) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthServerAuthenticationRequest::class);
 		if ($req !== null) {
+			// custom start
 			if ($req->autoCreate && $req->username) {
 				$user = \User::newFromName($req->username);
 				if (!$user->isRegistered()) { // race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
@@ -176,6 +177,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-yeah-fuck-no'));
 				}
 			}
+			// custom end
 
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new \League\OAuth2\Client\Provider\GenericProvider($config->get( 'AuthManagerOAuthConfig' )[$req->provider_name]);
@@ -192,6 +194,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		
 				$resourceOwner = $provider->getResourceOwner($accessToken);
 
+				// custom start
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 				$dbr = $lb->getConnectionRef( DB_REPLICA );
 
@@ -220,10 +223,13 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				} else {
 					return \MediaWiki\Auth\AuthenticationResponse::newUI($reqs, wfMessage('authmanageroauth-choose-message'));
 				}
+				// custom end
+
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-error', $e->getMessage()));
 			}
 		} else {
+			// custom start
 			$auth_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, OAuthAuthenticationRequest::class);
 			if ($auth_req !== null) {
 				// TODO FIXME validate username (not needed you cant spoof them)
@@ -233,24 +239,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			} else {
 				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-def'));
 			}
+			// custom end
 		}
 		return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
-	}
-
-	function autoCreatedAccount($user, $source) {
-		$auth_data = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
-		$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
-		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbr = $lb->getConnectionRef( DB_PRIMARY );
-		$result = $dbr->insert(
-			'authmanageroauth_linked_accounts',
-			[
-				'amoa_local_user' => $user->getId(),
-				'amoa_provider' => $auth_data['provider'],
-				'amoa_remote_user' => $auth_data['id'],
-			],
-			__METHOD__
-		);
 	}
 
 	function continuePrimaryAccountLink($user, array $reqs) {
@@ -272,6 +263,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		
 				$resourceOwner = $provider->getResourceOwner($accessToken);
 
+				// custom start
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 				$dbr = $lb->getConnectionRef( DB_PRIMARY );
 				$result = $dbr->insert(
@@ -286,6 +278,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 						'IGNORE'
 					]
 				);
+				// custom end
 
 				return \MediaWiki\Auth\AuthenticationResponse::newPass();
 			} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
@@ -294,6 +287,23 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		} else {
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
+	}
+
+
+	function autoCreatedAccount($user, $source) {
+		$auth_data = $this->manager->getAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
+		$this->manager->removeAuthenticationSessionData(self::AUTHENTICATION_SESSION_DATA_REMOTE_USER);
+		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr = $lb->getConnectionRef( DB_PRIMARY );
+		$result = $dbr->insert(
+			'authmanageroauth_linked_accounts',
+			[
+				'amoa_local_user' => $user->getId(),
+				'amoa_provider' => $auth_data['provider'],
+				'amoa_remote_user' => $auth_data['id'],
+			],
+			__METHOD__
+		);
 	}
 
 	function finishAccountCreation($user, $creator, \MediaWiki\Auth\AuthenticationResponse $response) {
