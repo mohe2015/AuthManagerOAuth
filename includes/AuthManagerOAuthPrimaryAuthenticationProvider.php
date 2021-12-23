@@ -50,7 +50,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			);
 			$reqs = [];
 			foreach ($result as $obj) {
-				$reqs[] = new OAuthUnlinkAuthenticationRequest($obj->amoa_provider, $obj->amoa_remote_user);
+				$reqs[] = new UnlinkOAuthAccountRequest($obj->amoa_provider, $obj->amoa_remote_user);
 			}
 			return $reqs;
 		}
@@ -173,11 +173,13 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 
 			$choose_local_username_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass($reqs, LocalUsernameInputRequest::class);
-			$user = \User::newFromName($choose_local_username_req->username);
-			if (!$user->isRegistered()) { // TODO FIXME query on primary race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
-				return \MediaWiki\Auth\AuthenticationResponse::newPass($choose_local_username_req->username);
-			} else {
-				return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-account-already-exists'));
+			if ($choose_local_username_req !== null) {
+				$user = \User::newFromName($choose_local_username_req->username);
+				if (!$user->isRegistered()) { // TODO FIXME query on primary race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
+					return \MediaWiki\Auth\AuthenticationResponse::newPass($choose_local_username_req->username);
+				} else {
+					return \MediaWiki\Auth\AuthenticationResponse::newFail(wfMessage('authmanageroauth-account-already-exists'));
+				}
 			}
 		}
 
@@ -240,8 +242,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				]
 			);
 
-			return \MediaWiki\Auth\AuthenticationResponse::newPass();
+			return $resp;
 		} else {
+			// TODO FIXME maybe we can put this in the common method so this is even less duplication
 			return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 		}
 	}
