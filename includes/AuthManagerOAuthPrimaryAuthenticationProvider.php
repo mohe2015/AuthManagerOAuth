@@ -60,6 +60,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	/**
+	 * All our users need to also be created locally so always return false here.
 	 * @inheritDoc
 	 */
 	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
@@ -132,6 +133,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	/**
+	 * @see beginPrimary
 	 * @inheritDoc
 	 */
 	public function beginPrimaryAccountCreation( $user, $creator, array $reqs ) {
@@ -139,6 +141,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	/**
+	 * @see beginPrimary
 	 * @inheritDoc
 	 */
 	public function beginPrimaryAuthentication( array $reqs ) {
@@ -146,6 +149,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	/**
+	 * @see beginPrimary
 	 * @inheritDoc
 	 */
 	public function beginPrimaryAccountLink( $user, array $reqs ) {
@@ -153,7 +157,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	/**
-	 * Convert the response of an OAuth redirect to the identity it represents for futher use.
+	 * Convert the response of an OAuth redirect to the identity it represents for further use. This asks the OAuth provider to verify the the login and gets the remote username and id.
 	 * @param OAuthProviderAuthenticationRequest $req
 	 * @return OAuthIdentityRequest
 	 */
@@ -206,7 +210,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export( $reqs, true ) );
 
 		$identity_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, OAuthIdentityRequest::class );
-		if ( $identity_req !== null ) {
+		if ( $identity_req !== null ) {	// Already authenticated with OAuth provider
 			$choose_local_account_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, ChooseLocalAccountRequest::class );
 			if ( $choose_local_account_req !== null ) {
 				return \MediaWiki\Auth\AuthenticationResponse::newPass( $choose_local_account_req->username );
@@ -251,9 +255,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				'id' => $resp->linkRequest->amoa_remote_user,
 			] );
 			if ( count( $reqs ) === 2 ) {
+				// There are no previous linked accounts
 				return \MediaWiki\Auth\AuthenticationResponse::newUI( $reqs, wfMessage( 'authmanageroauth-choose-username' ) );
-
 			} else {
+				// There are already accounts linked
 				return \MediaWiki\Auth\AuthenticationResponse::newUI( $reqs, wfMessage( 'authmanageroauth-choose-message' ) );
 			}
 		}

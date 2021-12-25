@@ -21,6 +21,9 @@ namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use MediaWiki\Auth\ButtonAuthenticationRequest;
 
+/**
+ * Show a button to choose an OAuth provider
+ */
 class ChooseOAuthProviderRequest extends ButtonAuthenticationRequest {
 
 	/** @var string The OAuth provider name */

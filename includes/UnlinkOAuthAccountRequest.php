@@ -21,6 +21,9 @@ namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use MediaWiki\Auth\ButtonAuthenticationRequest;
 
+/**
+ * Show a button to unlink a remote OAuth account.
+ */
 class UnlinkOAuthAccountRequest extends ButtonAuthenticationRequest {
 
 	/** @var string The OAuth Provider */

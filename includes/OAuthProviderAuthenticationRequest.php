@@ -64,8 +64,7 @@ class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
 
 	/**
 	 * Load data from query parameters in an OAuth return URL
-	 * @param array $data Submitted data as an associative array
-	 * @return bool
+	 * @inheritDoc
 	 */
 	public function loadFromSubmission( array $data ) {
 		if ( isset( $data['username'] ) ) {
