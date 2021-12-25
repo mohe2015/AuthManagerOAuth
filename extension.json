@@ -13,15 +13,15 @@
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\AuthManagerOAuth\\": "includes/"
 	},
+	"load_composer_autoloader": true,
 	"config": {
-		"AuthManagerOAuthEnableFoo": {
-			"description": "Enable the Foo feature.",
-			"value": true
-		},
-		"AuthManagerOAuthVandalizeEachPage": {
-			"description": "Write 'AuthManagerOAuth was here' on each page",
-			"value": false
+		"AuthManagerOAuthConfig": {
+			"description": "Dictionary of GenericProvider constructor parameters at https://oauth2-client.thephpleague.com/usage/",
+			"value": {}
 		}
+	},
+	"ConfigRegistry": {
+		"authmanageroauth": "GlobalVarConfig::newInstance"
 	},
 	"HookHandlers": {
 		"AuthManagerOAuthHooks": {
@@ -29,7 +29,8 @@
 		}
 	},
 	"Hooks": {
-		"BeforePageDisplay": "AuthManagerOAuthHooks"
+		"LoadExtensionSchemaUpdates": "AuthManagerOAuthHooks",
+		"AuthChangeFormFields": "AuthManagerOAuthHooks"
 	},
 	"MessagesDirs": {
 		"AuthManagerOAuth": [
@@ -48,5 +49,13 @@
 			"scripts": []
 		}
 	},
+	"AuthManagerAutoConfig": {
+        "primaryauth": {
+            "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider": {
+                "class": "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider",
+				"sort": 0
+            }
+        }
+    },
 	"manifest_version": 2
 }

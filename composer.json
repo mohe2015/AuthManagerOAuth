@@ -1,4 +1,8 @@
 {
+	"name": "mohe2015/authmanageroauth",
+	"config": {
+		"autoloader-suffix": "authmanageroauth"
+	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "38.0.0",
 		"mediawiki/minus-x": "1.1.1",
@@ -16,5 +20,9 @@
 			"phpcbf"
 		],
 		"phpcs": "phpcs -sp --cache"
+	},
+	"require": {
+		"league/oauth2-client": "^2.6",
+		"psr/container": "1.0.0"
 	}
 }

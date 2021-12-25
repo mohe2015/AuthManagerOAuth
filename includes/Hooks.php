@@ -19,19 +19,35 @@
 
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
-class Hooks implements \MediaWiki\Hook\BeforePageDisplayHook {
+class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook {
 
 	/**
-	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/BeforePageDisplay
-	 * @param \OutputPage $out
-	 * @param \Skin $skin
+	 * Add a table for the linked user accounts.
+	 * @param DatabaseUpdater $updater the database updater
 	 */
-	public function onBeforePageDisplay( $out, $skin ): void {
-		$config = $out->getConfig();
-		if ( $config->get( 'AuthManagerOAuthVandalizeEachPage' ) ) {
-			$out->addHTML( \Html::element( 'p', [], 'AuthManagerOAuth was here' ) );
-			$out->addModules( 'oojs-ui-core' );
-		}
+	public function onLoadExtensionSchemaUpdates( $updater ) {
+		$updater->addExtensionTable(
+			'authmanageroauth_linked_accounts',
+			__DIR__ . '/sql/authmanageroauth_linked_accounts.sql'
+		);
 	}
 
+	/**
+	 * Change the order of some authentication fields to make it more user friendly.
+	 * @inheritDoc
+	 */
+	public static function onAuthChangeFormFields( $requests, $fieldInfo, &$formDescriptor, $action ) {
+		// the ones without weight come first, then all with weight ordered ascending
+		foreach ( $formDescriptor as $key => $value ) {
+			if ( str_starts_with( $key, "oauthmanageroauth-provider-" ) ) {
+				$formDescriptor[$key]['weight'] = 101;
+			}
+			if ( str_starts_with( $key, "oauthmanageroauth-local-user" ) ) {
+				$formDescriptor[$key]['weight'] = 98;
+			}
+			if ( $key === "local_username" ) {
+				$formDescriptor[$key]['weight'] = 99;
+			}
+		}
+	}
 }

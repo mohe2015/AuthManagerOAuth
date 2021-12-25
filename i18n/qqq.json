@@ -4,5 +4,17 @@
 			"Your Name"
 		]
 	},
-	"authmanageroauth-desc": "{{desc|name=AuthManagerOAuth|url=https://www.mediawiki.org/wiki/Extension:AuthManagerOAuth}}"
+	"authmanageroauth-desc": "{{desc|name=AuthManagerOAuth|url=https://www.mediawiki.org/wiki/Extension:AuthManagerOAuth}}",
+	"oauthmanageroauth-login-with-username": "Create account with username",
+	"authmanageroauth-login": "Button text for logging in with $1. Also tell the user to not fill out the login form (especially not the password field)",
+	"authmanageroauth-create": "Button text for registering in with $1. Also tell the user to only fill out the username field (especially not the password field)",
+	"authmanageroauth-link": "Button text for linking account with $1.",
+	"authmanageroauth-remove": "Unlink $1 account $2",
+	"authmanageroauth-choose": "Login as $1",
+	"authmanageroauth-choose-message": "Choose account to login with",
+	"authmanageroauth-no-linked-accounts": "No linked accounts yet - Try creating an account",
+	"authmanageroauth-state-mismatch": "Mismatched authentication state - This looks like an attack",
+	"authmanageroauth-error": "A generic OAuth error with $1 for the message.",
+	"authmanageroauth-account-already-exists": "Account already exists.",
+	"authmanageroauth-choose-username": "Choose a username"
 }

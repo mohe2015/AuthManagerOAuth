@@ -4,5 +4,17 @@
 			"Your Name"
 		]
 	},
-	"authmanageroauth-desc": "This is an example extension"
+	"authmanageroauth-desc": "Create accounts or login using OAuth",
+	"oauthmanageroauth-login-with-username": "Create account with username",
+	"authmanageroauth-login": "Login with $1 (don't fill out above)",
+	"authmanageroauth-create": "Register with $1 (only fill out username)",
+	"authmanageroauth-link": "Link with $1",
+	"authmanageroauth-remove": "Unlink $1 account $2",
+	"authmanageroauth-choose": "Login as $1",
+	"authmanageroauth-choose-message": "Choose account to login with",
+	"authmanageroauth-no-linked-accounts": "No linked accounts yet - Try creating an account",
+	"authmanageroauth-state-mismatch": "Mismatched authentication state - This looks like an attack",
+	"authmanageroauth-error": "Error: $1",
+	"authmanageroauth-account-already-exists": "Account already exists.",
+	"authmanageroauth-choose-username": "Choose a username"
 }
