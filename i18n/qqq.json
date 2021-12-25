@@ -16,6 +16,5 @@
 	"authmanageroauth-state-mismatch": "Mismatched authentication state - This looks like an attack",
 	"authmanageroauth-error": "A generic OAuth error with $1 for the message.",
 	"authmanageroauth-account-already-exists": "Account already exists.",
-	"authmanageroauth-choose-username": "Choose a username",
-	"oauthmanageroauth-create-user-instead": "Create a new user instead"
+	"authmanageroauth-choose-username": "Choose a username"
 }

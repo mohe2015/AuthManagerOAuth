@@ -45,7 +45,7 @@ class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook 
 			if ( str_starts_with( $key, "oauthmanageroauth-provider-" ) ) {
 				$formDescriptor[$key]['weight'] = 101;
 			}
-			if ( str_starts_with( $key, "oauthmanageroauth-local-user" ) || $key === "oauthmanageroauth-create-user-instead" ) {
+			if ( str_starts_with( $key, "oauthmanageroauth-local-user" ) ) {
 				$formDescriptor[$key]['weight'] = 98;
 			}
 			if ( $key === "local_username" ) {
