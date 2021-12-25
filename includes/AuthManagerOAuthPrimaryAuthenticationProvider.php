@@ -205,6 +205,11 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	public function continuePrimaryAuthentication( array $reqs ) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export( $reqs, true ) );
 
+		$redirect_create_user_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, LinkToCreateUserRequest::class );
+		if ($redirect_create_user_req !== null) {
+			return \MediaWiki\Auth\AuthenticationResponse::newRedirect( [ $reqs ], \SpecialPage::getTitleFor( 'CreateAccount' )->getFullURL(), null );
+		}
+
 		$identity_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, OAuthIdentityRequest::class );
 		if ( $identity_req !== null ) {
 			$choose_local_account_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, ChooseLocalAccountRequest::class );
@@ -245,15 +250,16 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$user = \User::newFromId( $obj->amoa_local_user );
 				$reqs[] = new ChooseLocalAccountRequest( $obj->amoa_local_user, $user->getName() );
 			}
-			$reqs[] = $create_user_req;
 			$this->manager->setAuthenticationSessionData( self::AUTHENTICATION_SESSION_DATA_REMOTE_USER, [
 				'provider' => $req->amoa_provider,
 				'id' => $resp->linkRequest->amoa_remote_user,
 			] );
-			if ( count( $reqs ) === 2 ) {
+			if ( count( $reqs ) === 1 ) {
+				$reqs[] = $create_user_req;
 				return \MediaWiki\Auth\AuthenticationResponse::newUI( $reqs, wfMessage( 'authmanageroauth-choose-username' ) );
 
 			} else {
+				$reqs[] = new LinkToCreateUserRequest();
 				return \MediaWiki\Auth\AuthenticationResponse::newUI( $reqs, wfMessage( 'authmanageroauth-choose-message' ) );
 			}
 		}
