@@ -23,10 +23,16 @@ use MediaWiki\Auth\ButtonAuthenticationRequest;
 
 class ChooseOAuthProviderRequest extends ButtonAuthenticationRequest {
 
+	/** @var string The OAuth provider name */
 	public $amoa_provider;
 
-	function __construct( $amoa_provider, $action ) {
-		parent::__construct( "oauthmanageroauth-provider-$amoa_provider", wfMessage( 'authmanageroauth-' . $action, $amoa_provider ), wfMessage( 'authmanageroauth-' . $action, $amoa_provider ), true );
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( $amoa_provider, $action ) {
+		parent::__construct( "oauthmanageroauth-provider-$amoa_provider",
+						wfMessage( 'authmanageroauth-' . $action, $amoa_provider ),
+						wfMessage( 'authmanageroauth-' . $action, $amoa_provider ), true );
 		$this->amoa_provider = $amoa_provider;
 	}
 }

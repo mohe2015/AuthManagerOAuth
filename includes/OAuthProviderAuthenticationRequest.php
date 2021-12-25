@@ -23,17 +23,27 @@ use MediaWiki\Auth\AuthenticationRequest;
 
 class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
 
+	/** @var string The OAuth state */
 	public $state;
 
+	/** @var string The OAuth error */
 	public $errorCode;
 
+	/** @var string The OAuth provider name */
 	public $amoa_provider;
 
-	function __construct( $amoa_provider ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( $amoa_provider ) {
 		$this->amoa_provider = $amoa_provider;
 	}
 
 	// TODO fix it if we get an error message - I think we don't handle that currently
+
+	/**
+	 * @inheritDoc
+	 */
 	public function getFieldInfo() {
 		$result = [
 			'error' => [

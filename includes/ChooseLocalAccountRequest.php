@@ -23,11 +23,19 @@ use MediaWiki\Auth\ButtonAuthenticationRequest;
 
 class ChooseLocalAccountRequest extends ButtonAuthenticationRequest {
 
+	/** @var string The local user id */
 	public $amoa_local_user;
+
+	/** @var string The local username */
 	public $username;
 
-	function __construct( $amoa_local_user, $username ) {
-		parent::__construct( "oauthmanageroauth-local-user-$amoa_local_user", wfMessage( 'authmanageroauth-choose', $username ), wfMessage( 'authmanageroauth-choose', $username ), true );
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( $amoa_local_user, $username ) {
+		parent::__construct( "oauthmanageroauth-local-user-$amoa_local_user",
+						wfMessage( 'authmanageroauth-choose', $username ),
+						wfMessage( 'authmanageroauth-choose', $username ), true );
 		$this->amoa_local_user = $amoa_local_user;
 		$this->username = $username;
 	}

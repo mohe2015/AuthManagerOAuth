@@ -23,22 +23,34 @@ use MediaWiki\Auth\AuthenticationRequest;
 
 class OAuthIdentityRequest extends AuthenticationRequest {
 
+	/** @var string The OAuth remote user id */
 	public $amoa_remote_user;
 
+	/** @var string The OAuth provider name */
 	public $amoa_provider;
 
+	/** @var string The username of the remote OAuth account */
 	public $username;
 
-	function __construct( $amoa_provider, $amoa_remote_user, $username ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( $amoa_provider, $amoa_remote_user, $username ) {
 		$this->amoa_provider = $amoa_provider;
 		$this->amoa_remote_user = $amoa_remote_user;
 		$this->username = $username;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function getFieldInfo() {
 		return [];
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function loadFromSubmission( array $data ) {
 		return true;
 	}

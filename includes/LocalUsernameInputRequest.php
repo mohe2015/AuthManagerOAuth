@@ -23,12 +23,21 @@ use MediaWiki\Auth\AuthenticationRequest;
 
 class LocalUsernameInputRequest extends AuthenticationRequest {
 
+	/**
+	 * @var string The local username you want to register.
+	 */
 	public $local_username;
 
-	function __construct( $username ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( $username ) {
 		$this->local_username = $username;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function getFieldInfo() {
 		return [
 			'local_username' => [
