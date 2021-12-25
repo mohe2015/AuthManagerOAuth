@@ -23,10 +23,13 @@ use MediaWiki\MediaWikiServices;
 
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
-	const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
-	const AUTHENTICATION_SESSION_DATA_REMOTE_USER = 'authmanageroauth:remote-user';
+	private const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
+	private const AUTHENTICATION_SESSION_DATA_REMOTE_USER = 'authmanageroauth:remote-user';
 
-	function getAuthenticationRequests( $action, array $options ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function getAuthenticationRequests( $action, array $options ) {
 		wfDebugLog( 'AuthManagerOAuth getAuthenticationRequests', var_export( $action, true ) );
 		if ( $action === \MediaWiki\Auth\AuthManager::ACTION_LOGIN || $action === \MediaWiki\Auth\AuthManager::ACTION_CREATE || $action === \MediaWiki\Auth\AuthManager::ACTION_LINK ) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
@@ -56,11 +59,17 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		return [];
 	}
 
-	function testUserExists( $username, $flags = User::READ_NORMAL ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
 		return false;
 	}
 
-	function providerAllowsAuthenticationDataChange( \MediaWiki\Auth\AuthenticationRequest $req, $checkData = true ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function providerAllowsAuthenticationDataChange( \MediaWiki\Auth\AuthenticationRequest $req, $checkData = true ) {
 		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export( $req, true ) );
 		if ( get_class( $req ) === UnlinkOAuthAccountRequest::class &&
 			( $req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
@@ -69,7 +78,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		return \StatusValue::newGood( 'ignored' );
 	}
 
-	function providerChangeAuthenticationData( \MediaWiki\Auth\AuthenticationRequest $req ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function providerChangeAuthenticationData( \MediaWiki\Auth\AuthenticationRequest $req ) {
 		wfDebugLog( 'AuthManagerOAuth providerChangeAuthenticationData', var_export( $req, true ) );
 		if ( get_class( $req ) === UnlinkOAuthAccountRequest::class &&
 			( $req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE || $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
@@ -90,12 +102,18 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 	/**
 	 * This ensures that Special:LinkAccounts and Special:UnlinkAccounts works.
+	 * @inheritDoc
 	 */
-	function accountCreationType() {
+	public function accountCreationType() {
 		return \MediaWiki\Auth\PrimaryAuthenticationProvider::TYPE_LINK;
 	}
 
-	function beginPrimary( array $reqs ) {
+	/**
+	 * This starts primary authentication/creation/linking by redirecting to the OAuth provider.
+	 * @param array $reqs The original requests.
+	 * @return \MediaWiki\Auth\AuthenticationResponse the response for redirecting or abstaining.
+	 */
+	private function beginPrimary( array $reqs ) {
 		wfDebugLog( 'AuthManagerOAuth beginPrimary*', var_export( $reqs, true ) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, ChooseOAuthProviderRequest::class );
 		if ( $req !== null ) {
@@ -113,19 +131,33 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		}
 	}
 
-	function beginPrimaryAccountCreation( $user, $creator, array $reqs ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function beginPrimaryAccountCreation( $user, $creator, array $reqs ) {
 		return $this->beginPrimary( $reqs );
 	}
 
-	function beginPrimaryAuthentication( array $reqs ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function beginPrimaryAuthentication( array $reqs ) {
 		return $this->beginPrimary( $reqs );
 	}
 
-	function beginPrimaryAccountLink( $user, array $reqs ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function beginPrimaryAccountLink( $user, array $reqs ) {
 		return $this->beginPrimary( $reqs );
 	}
 
-	function convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest( $req ) {
+	/**
+	 * Convert the response of an OAuth redirect to the identity it represents for futher use.
+	 * @param OAuthProviderAuthenticationRequest $req
+	 * @return OAuthIdentityRequest
+	 */
+	private function convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest( $req ) {
 		$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 		$provider = new \League\OAuth2\Client\Provider\GenericProvider( $config->get( 'AuthManagerOAuthConfig' )[$req->amoa_provider] );
 		try {
@@ -154,7 +186,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		}
 	}
 
-	function continuePrimaryAccountCreation( $user, $creator, array $reqs ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function continuePrimaryAccountCreation( $user, $creator, array $reqs ) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountCreation', var_export( $reqs, true ) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, OAuthProviderAuthenticationRequest::class );
 		if ( $req !== null ) {
@@ -164,7 +199,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		}
 	}
 
-	function continuePrimaryAuthentication( array $reqs ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function continuePrimaryAuthentication( array $reqs ) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export( $reqs, true ) );
 
 		$identity_req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, OAuthIdentityRequest::class );
@@ -222,7 +260,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		return \MediaWiki\Auth\AuthenticationResponse::newAbstain();
 	}
 
-	function continuePrimaryAccountLink( $user, array $reqs ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function continuePrimaryAccountLink( $user, array $reqs ) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountLink', var_export( $reqs, true ) );
 		$req = \MediaWiki\Auth\AuthenticationRequest::getRequestByClass( $reqs, OAuthProviderAuthenticationRequest::class );
 		if ( $req !== null ) {
@@ -253,7 +294,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		}
 	}
 
-	function autoCreatedAccount( $user, $source ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function autoCreatedAccount( $user, $source ) {
 		$auth_data = $this->manager->getAuthenticationSessionData( self::AUTHENTICATION_SESSION_DATA_REMOTE_USER );
 		$this->manager->removeAuthenticationSessionData( self::AUTHENTICATION_SESSION_DATA_REMOTE_USER );
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -269,7 +313,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		);
 	}
 
-	function finishAccountCreation( $user, $creator, \MediaWiki\Auth\AuthenticationResponse $response ) {
+	/**
+	 * @inheritDoc
+	 */
+	public function finishAccountCreation( $user, $creator, \MediaWiki\Auth\AuthenticationResponse $response ) {
 		wfDebugLog( 'AuthManagerOAuth finishAccountCreation', var_export( $response, true ) );
 		$req = $response->createRequest;
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
