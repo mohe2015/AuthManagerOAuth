@@ -30,24 +30,13 @@
 	},
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "AuthManagerOAuthHooks",
-		"AuthChangeFormFields": "AuthManagerOAuthHooks"
+		"AuthChangeFormFields": "AuthManagerOAuthHooks",
+		"GetPreferences": "AuthManagerOAuthHooks"
 	},
 	"MessagesDirs": {
 		"AuthManagerOAuth": [
 			"i18n"
 		]
-	},
-	"ResourceFileModulePaths": {
-		"localBasePath": "resources",
-		"remoteExtPath": "AuthManagerOAuth/resources"
-	},
-	"ResourceModules": {
-		"ext.authManagerOAuth": {
-			"dependencies": [],
-			"messages": [],
-			"styles": [],
-			"scripts": []
-		}
 	},
 	"AuthManagerAutoConfig": {
         "primaryauth": {
