@@ -50,4 +50,31 @@ class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook 
 			}
 		}
 	}
+
+	/**
+	 * Add buttons to linked accounts and to link new accounts
+	 * @inheritDoc
+	 */
+	public static function onGetPreferences( \User $user, array &$preferences ) {
+		$preferences['authmanageroauth-linked-accounts-link'] = [
+			'section' => 'personal/info',
+			'label-message' => 'authmanageroauth-linked-accounts',
+			'type' => 'info',
+			'raw' => true,
+			'default' => (string)( new \OOUI\ButtonWidget( [
+				'href' => \SpecialPage::getTitleFor( 'ChangeCredentials' )->getLinkURL(),
+				'label' => wfMessage( 'authmanageroauth-linked-accounts' )->plain()
+			] ) )
+		];
+		$preferences['authmanageroauth-link-accounts-link'] = [
+			'section' => 'personal/info',
+			'label-message' => 'authmanageroauth-link-accounts',
+			'type' => 'info',
+			'raw' => true,
+			'default' => (string)( new \OOUI\ButtonWidget( [
+				'href' => \SpecialPage::getTitleFor( 'LinkAccounts' )->getLinkURL(),
+				'label' => wfMessage( 'authmanageroauth-link-accounts' )->plain()
+			] ) )
+		];
+	}
 }

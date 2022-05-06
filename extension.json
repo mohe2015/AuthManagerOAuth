@@ -30,7 +30,8 @@
 	},
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "AuthManagerOAuthHooks",
-		"AuthChangeFormFields": "AuthManagerOAuthHooks"
+		"AuthChangeFormFields": "AuthManagerOAuthHooks",
+		"GetPreferences": "AuthManagerOAuthHooks"
 	},
 	"MessagesDirs": {
 		"AuthManagerOAuth": [
