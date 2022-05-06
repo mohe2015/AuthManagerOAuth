@@ -25,6 +25,6 @@
 	},
 	"require": {
 		"league/oauth2-client": "^2.6",
-		"psr/container": "1.0.0"
+		"psr/container": "^1.0.0"
 	}
 }
