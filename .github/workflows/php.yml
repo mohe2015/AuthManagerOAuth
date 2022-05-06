@@ -42,4 +42,4 @@ jobs:
       with:
         name: AuthManagerOAuth
         retention-days: 3
-        path: ../AuthManagerOAuth
+        path: /home/runner/work/AuthManagerOAuth/
