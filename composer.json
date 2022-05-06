@@ -1,5 +1,7 @@
 {
 	"name": "mohe2015/authmanageroauth",
+	"description": "Create accounts or login using OAuth",
+	"license": "GPL-2.0-or-later",
 	"config": {
 		"autoloader-suffix": "authmanageroauth"
 	},
@@ -23,6 +25,6 @@
 	},
 	"require": {
 		"league/oauth2-client": "^2.6",
-		"psr/container": "1.0.0"
+		"psr/container": "^1.0.0"
 	}
 }
