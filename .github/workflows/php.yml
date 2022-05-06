@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - run: pwd
     - uses: actions/checkout@v3
 
     - name: Validate composer.json and composer.lock
@@ -41,4 +42,4 @@ jobs:
       with:
         name: AuthManagerOAuth
         retention-days: 3
-        path: .
+        path: ../AuthManagerOAuth
