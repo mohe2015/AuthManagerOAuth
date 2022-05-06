@@ -37,18 +37,6 @@
 			"i18n"
 		]
 	},
-	"ResourceFileModulePaths": {
-		"localBasePath": "resources",
-		"remoteExtPath": "AuthManagerOAuth/resources"
-	},
-	"ResourceModules": {
-		"ext.authManagerOAuth": {
-			"dependencies": [],
-			"messages": [],
-			"styles": [],
-			"scripts": []
-		}
-	},
 	"AuthManagerAutoConfig": {
         "primaryauth": {
             "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider": {
