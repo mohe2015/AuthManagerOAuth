@@ -240,7 +240,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$result = $dbr->select(
 				'authmanageroauth_linked_accounts',
 				[ 'amoa_provider', 'amoa_remote_user', 'amoa_local_user' ],
-				[ 'amoa_provider' => $req->amoa_provider, 'amoa_remote_user' => $resp->linkRequest->amoa_remote_user ],
+				[ 'amoa_provider' => $req->amoa_provider, 'amoa_remote_user' => strval($resp->linkRequest->amoa_remote_user) ],
 				__METHOD__,
 			);
 			$create_user_req = new LocalUsernameInputRequest( $resp->linkRequest->username );

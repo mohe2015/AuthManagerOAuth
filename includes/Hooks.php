@@ -28,7 +28,7 @@ class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook 
 	public function onLoadExtensionSchemaUpdates( $updater ) {
 		$updater->addExtensionTable(
 			'authmanageroauth_linked_accounts',
-			__DIR__ . '/sql/authmanageroauth_linked_accounts.sql'
+			__DIR__ . '/sql/' . $updater->getDB()->getType() . '/authmanageroauth_linked_accounts.sql'
 		);
 	}
 
