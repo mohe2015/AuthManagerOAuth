@@ -11,7 +11,7 @@
 		"MediaWiki": ">= 1.35.0"
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\AuthManagerOAuth\\": "includes/"
+		"MediaWiki\\Extension\\AuthManagerOAuth\\": "src/"
 	},
 	"load_composer_autoloader": true,
 	"config": {
@@ -39,12 +39,12 @@
 		]
 	},
 	"AuthManagerAutoConfig": {
-        "primaryauth": {
-            "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider": {
-                "class": "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider",
+		"primaryauth": {
+			"MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider": {
+				"class": "MediaWiki\\Extension\\AuthManagerOAuth\\AuthManagerOAuthPrimaryAuthenticationProvider",
 				"sort": 0
-            }
-        }
-    },
+			}
+		}
+	},
 	"manifest_version": 2
 }
