@@ -136,7 +136,11 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$provider->getState()
 			);
 
-			return AuthenticationResponse::newRedirect( [ new OAuthProviderAuthenticationRequest( $req->amoa_provider ) ], $authorizationUrl, null );
+			return AuthenticationResponse::newRedirect(
+				[ new OAuthProviderAuthenticationRequest( $req->amoa_provider ) ],
+				$authorizationUrl,
+				null
+			);
 		} else {
 			return AuthenticationResponse::newAbstain();
 		}
@@ -167,7 +171,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	}
 
 	/**
-	 * Convert the response of an OAuth redirect to the identity it represents for further use. This asks the OAuth provider to verify the the login and gets the remote username and id.
+	 * Convert the response of an OAuth redirect to the identity it represents for further use.
+	 * This asks the OAuth provider to verify the the login and gets the remote username and id.
 	 * @param OAuthProviderAuthenticationRequest $req
 	 * @return OAuthIdentityRequest
 	 */
@@ -175,7 +180,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 		$provider = new GenericProvider( $config->get( 'AuthManagerOAuthConfig' )[$req->amoa_provider] );
 		try {
-			// TODO do we even need this authentication data or can we just store this in the authentication request. ensure again that both of it can't be manipulated
+			// TODO do we even need this authentication data or can we just store this in the authentication request.
+			// ensure again that both of it can't be manipulated
 			$state = $this->manager->getAuthenticationSessionData( self::AUTHENTICATION_SESSION_DATA_STATE );
 			$this->manager->removeAuthenticationSessionData( self::AUTHENTICATION_SESSION_DATA_STATE );
 			if ( ( !$state ) || $state !== $req->state ) {
@@ -188,7 +194,12 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 
 			$resourceOwner = $provider->getResourceOwner( $accessToken );
 
-			$req = new OAuthIdentityRequest( $req->amoa_provider, $resourceOwner->getId(), $resourceOwner->toArray()['login'] );  // TODO FIXME provider dependent path
+			// TODO FIXME provider dependent path
+			$req = new OAuthIdentityRequest(
+				$req->amoa_provider,
+				$resourceOwner->getId(),
+				$resourceOwner->toArray()['login']
+			);
 
 			$response = AuthenticationResponse::newPass();
 			$response->createRequest = $req;
@@ -220,16 +231,25 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export( $reqs, true ) );
 
 		$identity_req = AuthenticationRequest::getRequestByClass( $reqs, OAuthIdentityRequest::class );
-		if ( $identity_req !== null ) {	// Already authenticated with OAuth provider
-			$choose_local_account_req = AuthenticationRequest::getRequestByClass( $reqs, ChooseLocalAccountRequest::class );
+		if ( $identity_req !== null ) {
+			// Already authenticated with OAuth provider
+
+			$choose_local_account_req = AuthenticationRequest::getRequestByClass(
+				$reqs,
+				ChooseLocalAccountRequest::class
+			);
 			if ( $choose_local_account_req !== null ) {
 				return AuthenticationResponse::newPass( $choose_local_account_req->username );
 			}
 
-			$choose_local_username_req = AuthenticationRequest::getRequestByClass( $reqs, LocalUsernameInputRequest::class );
+			$choose_local_username_req = AuthenticationRequest::getRequestByClass(
+				$reqs,
+				LocalUsernameInputRequest::class
+			);
 			if ( $choose_local_username_req !== null ) {
 				$user = \User::newFromName( $choose_local_username_req->local_username );
-				if ( !$user->isRegistered() ) { // TODO FIXME query on primary race condition but that's just how it is https://phabricator.wikimedia.org/T138678#3911381
+				// TODO FIXME query on primary race condition https://phabricator.wikimedia.org/T138678#3911381
+				if ( !$user->isRegistered() ) {
 					return AuthenticationResponse::newPass( $choose_local_username_req->local_username );
 				} else {
 					return AuthenticationResponse::newFail( wfMessage( 'authmanageroauth-account-already-exists' ) );
