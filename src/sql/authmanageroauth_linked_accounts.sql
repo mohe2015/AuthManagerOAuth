@@ -3,7 +3,7 @@ CREATE TABLE /*_*/authmanageroauth_linked_accounts(
     amoa_provider VARCHAR(255) NOT NULL,
 
     -- the local user id
-    amoa_local_user INTEGER UNSIGNED NOT NULL,
+    amoa_local_user BIGINT NOT NULL,
 
     -- the remote user identifier
     amoa_remote_user VARCHAR(255) NOT NULL,
