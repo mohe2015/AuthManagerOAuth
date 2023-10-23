@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -28,6 +28,13 @@ jobs:
       run: composer install
     - name: Run test suite
       run: composer run-script test
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: composer install --no-dev
     - uses: actions/upload-artifact@v3
       with:
         name: AuthManagerOAuth
