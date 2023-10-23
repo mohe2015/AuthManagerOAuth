@@ -197,7 +197,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			// TODO FIXME provider dependent path
 			$req = new OAuthIdentityRequest(
 				$req->amoa_provider,
-				strval($resourceOwner->getId()),
+				strval( $resourceOwner->getId() ),
 				$resourceOwner->toArray()['login']
 			);
 
