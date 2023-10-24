@@ -20,6 +20,7 @@
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use League\OAuth2\Client\Provider\GenericProvider;
+use LogicException;
 use MediaWiki\Auth\AuthenticationRequest;
 use MediaWiki\Auth\AuthenticationResponse;
 use MediaWiki\MediaWikiServices;
@@ -263,6 +264,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			if ( $resp->status !== AuthenticationResponse::PASS ) {
 				return $resp;
 			}
+			if (!($resp->linkRequest instanceof OAuthIdentityRequest)) {
+				throw new LogicException("Unexpected createRequest type {${get_class($req)}}. This should never happen.");
+			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_REPLICA );
@@ -305,6 +309,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			$resp = $this->convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest( $req );
 			if ( $resp->status !== AuthenticationResponse::PASS ) {
 				return $resp;
+			}
+			if (!($resp->linkRequest instanceof OAuthIdentityRequest)) {
+				throw new LogicException("Unexpected createRequest type {${get_class($req)}}. This should never happen.");
 			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -354,6 +361,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	public function finishAccountCreation( $user, $creator, AuthenticationResponse $response ) {
 		wfDebugLog( 'AuthManagerOAuth finishAccountCreation', var_export( $response, true ) );
 		$req = $response->createRequest;
+		if (!($req instanceof OAuthIdentityRequest)) {
+			throw new LogicException("Unexpected createRequest type {${get_class($req)}}. This should never happen.");
+		}
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnectionRef( DB_PRIMARY );
 		$result = $dbr->insert(
