@@ -25,6 +25,7 @@ use MediaWiki\Auth\AuthenticationRequest;
 use MediaWiki\Auth\AuthenticationResponse;
 use MediaWiki\MediaWikiServices;
 
+// https://doc.wikimedia.org/mediawiki-core/master/php/classMediaWiki_1_1Auth_1_1AbstractPrimaryAuthenticationProvider.html
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
 	private const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
@@ -45,8 +46,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 			return $reqs;
 		}
-		if ( $options['username'] !== null && ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
-			 $action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
+		if ( $options['username'] !== null
+		  && ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE
+			|| $action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			$user = \User::newFromName( $options['username'] );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_REPLICA );
@@ -80,7 +82,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export( $req, true ) );
 		if ( $req instanceof UnlinkOAuthAccountRequest
 		  && ( $req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE
-			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
+			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			return \StatusValue::newGood();
 		}
 		return \StatusValue::newGood( 'ignored' );
@@ -93,7 +95,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth providerChangeAuthenticationData', var_export( $req, true ) );
 		if ( $req instanceof UnlinkOAuthAccountRequest
 		  && ( $req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE
-			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
+			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			$user = \User::newFromName( $req->username );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_PRIMARY );
@@ -106,6 +108,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				],
 				__METHOD__,
 			);
+		} else {
+			throw new LogicException("Unexpected unhandled request");
 		}
 	}
 
@@ -376,4 +380,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			__METHOD__,
 		);
 	}
+
+	// TODO providerNormalizeUsername()
+	// TODO providerRevokeAccessForUser
 }

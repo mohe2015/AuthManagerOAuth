@@ -62,7 +62,7 @@ class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook 
 			'type' => 'info',
 			'raw' => true,
 			'default' => (string)( new \OOUI\ButtonWidget( [
-				'href' => \SpecialPage::getTitleFor( 'ChangeCredentials' )->getLinkURL(),
+				'href' => \SpecialPage::getTitleFor( 'UnlinkAccounts' )->getLinkURL(),
 				'label' => wfMessage( 'authmanageroauth-linked-accounts' )->plain()
 			] ) )
 		];
