@@ -109,7 +109,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				__METHOD__,
 			);
 		} else {
-			throw new LogicException("Unexpected unhandled request");
+			throw new LogicException( "Unexpected unhandled request" );
 		}
 	}
 
@@ -243,7 +243,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$reqs,
 				ChooseLocalAccountRequest::class
 			);
-			if ( $choose_local_account_req !== null && $choose_local_account_req instanceof ChooseLocalAccountRequest ) {
+			if ( $choose_local_account_req !== null
+			  && $choose_local_account_req instanceof ChooseLocalAccountRequest ) {
 				return AuthenticationResponse::newPass( $choose_local_account_req->username );
 			}
 
@@ -251,7 +252,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$reqs,
 				LocalUsernameInputRequest::class
 			);
-			if ( $choose_local_username_req !== null && $choose_local_username_req instanceof LocalUsernameInputRequest ) {
+			if ( $choose_local_username_req !== null
+			  && $choose_local_username_req instanceof LocalUsernameInputRequest ) {
 				$user = \User::newFromName( $choose_local_username_req->local_username );
 				// TODO FIXME query on primary race condition https://phabricator.wikimedia.org/T138678#3911381
 				if ( !$user->isRegistered() ) {
@@ -268,8 +270,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			if ( $resp->status !== AuthenticationResponse::PASS ) {
 				return $resp;
 			}
-			if (!($resp->linkRequest instanceof OAuthIdentityRequest)) {
-				throw new LogicException("Unexpected createRequest type {${get_class($req)}}. This should never happen.");
+			if ( !( $resp->linkRequest instanceof OAuthIdentityRequest ) ) {
+				throw new LogicException(
+					"Unexpected createRequest type {${get_class($req)}}. This should never happen."
+				);
 			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -314,8 +318,10 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			if ( $resp->status !== AuthenticationResponse::PASS ) {
 				return $resp;
 			}
-			if (!($resp->linkRequest instanceof OAuthIdentityRequest)) {
-				throw new LogicException("Unexpected createRequest type {${get_class($req)}}. This should never happen.");
+			if ( !( $resp->linkRequest instanceof OAuthIdentityRequest ) ) {
+				throw new LogicException(
+					"Unexpected createRequest type {${get_class($req)}}. This should never happen."
+				);
 			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -365,8 +371,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	public function finishAccountCreation( $user, $creator, AuthenticationResponse $response ) {
 		wfDebugLog( 'AuthManagerOAuth finishAccountCreation', var_export( $response, true ) );
 		$req = $response->createRequest;
-		if (!($req instanceof OAuthIdentityRequest)) {
-			throw new LogicException("Unexpected createRequest type {${get_class($req)}}. This should never happen.");
+		if ( !( $req instanceof OAuthIdentityRequest ) ) {
+			throw new LogicException( "Unexpected createRequest type {${get_class($req)}}. This should never happen." );
 		}
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnectionRef( DB_PRIMARY );
