@@ -20,10 +20,12 @@
 namespace MediaWiki\Extension\AuthManagerOAuth;
 
 use League\OAuth2\Client\Provider\GenericProvider;
+use LogicException;
 use MediaWiki\Auth\AuthenticationRequest;
 use MediaWiki\Auth\AuthenticationResponse;
 use MediaWiki\MediaWikiServices;
 
+// https://doc.wikimedia.org/mediawiki-core/master/php/classMediaWiki_1_1Auth_1_1AbstractPrimaryAuthenticationProvider.html
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
 	private const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
@@ -44,8 +46,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 			return $reqs;
 		}
-		if ( $options['username'] !== null && ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE ||
-			 $action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
+		if ( $options['username'] !== null
+		  && ( $action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE
+			|| $action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			$user = \User::newFromName( $options['username'] );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_REPLICA );
@@ -68,7 +71,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	 * All our users need to also be created locally so always return false here.
 	 * @inheritDoc
 	 */
-	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
+	public function testUserExists( $username, $flags = \User::READ_NORMAL ) {
 		return false;
 	}
 
@@ -77,9 +80,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	 */
 	public function providerAllowsAuthenticationDataChange( AuthenticationRequest $req, $checkData = true ) {
 		wfDebugLog( 'AuthManagerOAuth providerAllowsAuthenticationDataChange', var_export( $req, true ) );
-		if ( get_class( $req ) === UnlinkOAuthAccountRequest::class
+		if ( $req instanceof UnlinkOAuthAccountRequest
 		  && ( $req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE
-			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
+			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			return \StatusValue::newGood();
 		}
 		return \StatusValue::newGood( 'ignored' );
@@ -90,9 +93,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	 */
 	public function providerChangeAuthenticationData( AuthenticationRequest $req ) {
 		wfDebugLog( 'AuthManagerOAuth providerChangeAuthenticationData', var_export( $req, true ) );
-		if ( get_class( $req ) === UnlinkOAuthAccountRequest::class
+		if ( $req instanceof UnlinkOAuthAccountRequest
 		  && ( $req->action === \MediaWiki\Auth\AuthManager::ACTION_REMOVE
-			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_CHANGE ) ) {
+			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			$user = \User::newFromName( $req->username );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 			$dbr = $lb->getConnectionRef( DB_PRIMARY );
@@ -105,6 +108,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				],
 				__METHOD__,
 			);
+		} else {
+			throw new LogicException( "Unexpected unhandled request" );
 		}
 	}
 
@@ -124,7 +129,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	private function beginPrimary( array $reqs ) {
 		wfDebugLog( 'AuthManagerOAuth beginPrimary*', var_export( $reqs, true ) );
 		$req = AuthenticationRequest::getRequestByClass( $reqs, ChooseOAuthProviderRequest::class );
-		if ( $req !== null ) {
+		if ( $req !== null && $req instanceof ChooseOAuthProviderRequest ) {
 			$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
 			$provider = new GenericProvider( $config->get( 'AuthManagerOAuthConfig' )[$req->amoa_provider] );
 			$authorizationUrl = $provider->getAuthorizationUrl( [
@@ -174,7 +179,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	 * Convert the response of an OAuth redirect to the identity it represents for further use.
 	 * This asks the OAuth provider to verify the the login and gets the remote username and id.
 	 * @param OAuthProviderAuthenticationRequest $req
-	 * @return OAuthIdentityRequest
+	 * @return AuthenticationResponse
 	 */
 	private function convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest( $req ) {
 		$config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'authmanageroauth' );
@@ -231,14 +236,15 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAuthentication', var_export( $reqs, true ) );
 
 		$identity_req = AuthenticationRequest::getRequestByClass( $reqs, OAuthIdentityRequest::class );
-		if ( $identity_req !== null ) {
+		if ( $identity_req !== null && $identity_req instanceof OAuthIdentityRequest ) {
 			// Already authenticated with OAuth provider
 
 			$choose_local_account_req = AuthenticationRequest::getRequestByClass(
 				$reqs,
 				ChooseLocalAccountRequest::class
 			);
-			if ( $choose_local_account_req !== null ) {
+			if ( $choose_local_account_req !== null
+			  && $choose_local_account_req instanceof ChooseLocalAccountRequest ) {
 				return AuthenticationResponse::newPass( $choose_local_account_req->username );
 			}
 
@@ -246,7 +252,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				$reqs,
 				LocalUsernameInputRequest::class
 			);
-			if ( $choose_local_username_req !== null ) {
+			if ( $choose_local_username_req !== null
+			  && $choose_local_username_req instanceof LocalUsernameInputRequest ) {
 				$user = \User::newFromName( $choose_local_username_req->local_username );
 				// TODO FIXME query on primary race condition https://phabricator.wikimedia.org/T138678#3911381
 				if ( !$user->isRegistered() ) {
@@ -258,10 +265,15 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		}
 
 		$req = AuthenticationRequest::getRequestByClass( $reqs, OAuthProviderAuthenticationRequest::class );
-		if ( $req !== null ) {
+		if ( $req !== null && $req instanceof OAuthProviderAuthenticationRequest ) {
 			$resp = $this->convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest( $req );
 			if ( $resp->status !== AuthenticationResponse::PASS ) {
 				return $resp;
+			}
+			if ( !( $resp->linkRequest instanceof OAuthIdentityRequest ) ) {
+				throw new LogicException(
+					"Unexpected createRequest type {${get_class($req)}}. This should never happen."
+				);
 			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -301,10 +313,15 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	public function continuePrimaryAccountLink( $user, array $reqs ) {
 		wfDebugLog( 'AuthManagerOAuth continuePrimaryAccountLink', var_export( $reqs, true ) );
 		$req = AuthenticationRequest::getRequestByClass( $reqs, OAuthProviderAuthenticationRequest::class );
-		if ( $req !== null ) {
+		if ( $req !== null && $req instanceof OAuthProviderAuthenticationRequest ) {
 			$resp = $this->convertOAuthProviderAuthenticationRequestToOAuthIdentityRequest( $req );
 			if ( $resp->status !== AuthenticationResponse::PASS ) {
 				return $resp;
+			}
+			if ( !( $resp->linkRequest instanceof OAuthIdentityRequest ) ) {
+				throw new LogicException(
+					"Unexpected createRequest type {${get_class($req)}}. This should never happen."
+				);
 			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
@@ -354,6 +371,9 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 	public function finishAccountCreation( $user, $creator, AuthenticationResponse $response ) {
 		wfDebugLog( 'AuthManagerOAuth finishAccountCreation', var_export( $response, true ) );
 		$req = $response->createRequest;
+		if ( !( $req instanceof OAuthIdentityRequest ) ) {
+			throw new LogicException( "Unexpected createRequest type {${get_class($req)}}. This should never happen." );
+		}
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnectionRef( DB_PRIMARY );
 		$result = $dbr->insert(
@@ -366,4 +386,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			__METHOD__,
 		);
 	}
+
+	// TODO providerNormalizeUsername()
+	// TODO providerRevokeAccessForUser
 }

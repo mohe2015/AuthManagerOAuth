@@ -17,6 +17,6 @@
 	"authmanageroauth-error": "Error: $1",
 	"authmanageroauth-account-already-exists": "Account already exists.",
 	"authmanageroauth-choose-username": "Choose a username",
-	"authmanageroauth-linked-accounts": "Linked accounts",
+	"authmanageroauth-linked-accounts": "Linked accounts and unlink",
 	"authmanageroauth-link-accounts": "Link accounts"
 }

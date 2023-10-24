@@ -4,11 +4,14 @@ Create accounts or login using OAuth
 
 ## Setup
 
-1. install nodejs, npm, and PHP composer
-3. `npm install`
+1. install PHP composer
 4. `composer install`
 
-Once set up, running `npm test` and `composer test` will run automated code checks.
+Once set up, running `composer test` will run automated code checks.
+
+## Development
+
+Add the extension do your development mediawiki instance and then open the top level mediawiki folder in Visual Studio Code. Then you should get more or less proper intellisense.
 
 ## Documentation
 
