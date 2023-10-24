@@ -11,7 +11,7 @@ Once set up, running `composer test` will run automated code checks.
 
 ## Development
 
-Add the extension do your development mediawiki instance and then open the top level mediawiki folder in Visual Studio Code. Then you should get more or less proper intellisense.
+Add the extension to your development mediawiki instance and then open the top level mediawiki folder in Visual Studio Code. Then you should get more or less proper intellisense.
 
 ## Documentation
 
