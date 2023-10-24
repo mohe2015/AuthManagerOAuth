@@ -23,6 +23,9 @@ use MediaWiki\Auth\AuthenticationRequest;
 
 class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
 
+	/** @var string The OAuth provider name */
+	public $accessToken;
+
 	/** @var string The OAuth state */
 	public $state;
 
