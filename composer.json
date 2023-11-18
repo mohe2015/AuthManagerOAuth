@@ -23,6 +23,7 @@
 		"phpcs": "phpcs -sp --cache"
 	},
 	"require": {
-		"league/oauth2-client": "^2.7"
+		"league/oauth2-client": "^2.7",
+		"psr/http-message": "~1.0.1"
 	}
 }
