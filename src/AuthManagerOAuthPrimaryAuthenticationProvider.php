@@ -109,7 +109,11 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 				__METHOD__,
 			);
 		} else {
-			throw new LogicException( "Unexpected unhandled request" );
+			// If this is not an OAuth-related request (e.g., password change),
+			// we should ignore it since OAuth providers don't handle local passwords
+			// Just return without doing anything
+			wfDebugLog( 'AuthManagerOAuth', 'Ignoring non-OAuth request in providerChangeAuthenticationData' );
+			return;
 		}
 	}
 
