@@ -23,7 +23,7 @@ class Hooks implements \MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook 
 
 	/**
 	 * Add a table for the linked user accounts.
-	 * @param DatabaseUpdater $updater the database updater
+	 * @param \MediaWiki\Installer\DatabaseUpdater $updater the database updater
 	 */
 	public function onLoadExtensionSchemaUpdates( $updater ) {
 		$updater->addExtensionTable(
