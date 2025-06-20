@@ -51,7 +51,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			|| $action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			$user = \User::newFromName( $options['username'] );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-			$dbr = $lb->getConnectionRef( DB_REPLICA );
+			$dbr = $lb->getConnection( DB_REPLICA );
 			$result = $dbr->select(
 				'authmanageroauth_linked_accounts',
 				[ 'amoa_provider', 'amoa_remote_user' ],
@@ -98,7 +98,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			|| $req->action === \MediaWiki\Auth\AuthManager::ACTION_UNLINK ) ) {
 			$user = \User::newFromName( $req->username );
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-			$dbr = $lb->getConnectionRef( DB_PRIMARY );
+			$dbr = $lb->getConnection( DB_PRIMARY );
 			$result = $dbr->delete(
 				'authmanageroauth_linked_accounts',
 				[
@@ -281,7 +281,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-			$dbr = $lb->getConnectionRef( DB_REPLICA );
+			$dbr = $lb->getConnection( DB_REPLICA );
 
 			$result = $dbr->select(
 				'authmanageroauth_linked_accounts',
@@ -329,7 +329,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			}
 
 			$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-			$dbr = $lb->getConnectionRef( DB_PRIMARY );
+			$dbr = $lb->getConnection( DB_PRIMARY );
 			$result = $dbr->insert(
 				'authmanageroauth_linked_accounts',
 				[
@@ -357,7 +357,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		$auth_data = $this->manager->getAuthenticationSessionData( self::AUTHENTICATION_SESSION_DATA_REMOTE_USER );
 		$this->manager->removeAuthenticationSessionData( self::AUTHENTICATION_SESSION_DATA_REMOTE_USER );
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbr = $lb->getConnectionRef( DB_PRIMARY );
+		$dbr = $lb->getConnection( DB_PRIMARY );
 		$result = $dbr->insert(
 			'authmanageroauth_linked_accounts',
 			[
@@ -380,7 +380,7 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 			throw new LogicException( "Unexpected createRequest type {$request_class}. This should never happen." );
 		}
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbr = $lb->getConnectionRef( DB_PRIMARY );
+		$dbr = $lb->getConnection( DB_PRIMARY );
 		$result = $dbr->insert(
 			'authmanageroauth_linked_accounts',
 			[
