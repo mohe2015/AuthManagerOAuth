@@ -51,14 +51,20 @@ class OAuthProviderAuthenticationRequest extends AuthenticationRequest {
 		$result = [
 			'error' => [
 				'type' => 'hidden',
+				'label' => wfMessage( 'oauthmanageroauth-unreachable' ),
+				'help' => wfMessage( 'oauthmanageroauth-unreachable' ),
 				'optional' => true,
 			],
 			'code' => [
 				'type' => 'hidden',
+				'label' => wfMessage( 'oauthmanageroauth-unreachable' ),
+				'help' => wfMessage( 'oauthmanageroauth-unreachable' ),
 				'optional' => true,
 			],
 			'state' => [
 				'type' => 'hidden',
+				'label' => wfMessage( 'oauthmanageroauth-unreachable' ),
+				'help' => wfMessage( 'oauthmanageroauth-unreachable' ),
 				'optional' => true,
 			],
 		];

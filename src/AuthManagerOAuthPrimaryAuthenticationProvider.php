@@ -376,7 +376,8 @@ class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\Abst
 		wfDebugLog( 'AuthManagerOAuth finishAccountCreation', var_export( $response, true ) );
 		$req = $response->createRequest;
 		if ( !( $req instanceof OAuthIdentityRequest ) ) {
-			throw new LogicException( "Unexpected createRequest type {${get_class($req)}}. This should never happen." );
+			$request_class = $req != null ? get_class( $req ) : "unknown";
+			throw new LogicException( "Unexpected createRequest type {$request_class}. This should never happen." );
 		}
 		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $lb->getConnectionRef( DB_PRIMARY );

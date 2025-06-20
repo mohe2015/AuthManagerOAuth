@@ -18,5 +18,6 @@
 	"authmanageroauth-account-already-exists": "Account already exists.",
 	"authmanageroauth-choose-username": "Choose a username",
 	"authmanageroauth-linked-accounts": "Linked accounts and unlink",
-	"authmanageroauth-link-accounts": "Link accounts"
+	"authmanageroauth-link-accounts": "Link accounts",
+	"oauthmanageroauth-unreachable": "This message should never be shown"
 }
