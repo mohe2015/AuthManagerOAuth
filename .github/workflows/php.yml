@@ -35,7 +35,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run: composer install --no-dev
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: AuthManagerOAuth
         retention-days: 3
