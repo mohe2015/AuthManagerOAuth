@@ -58,7 +58,7 @@ jobs:
     - name: Install extension dependencies
       run: composer install --no-progress --working-dir=core/extensions/AuthManagerOAuth
     - name: Install wiki
-      run: php core/maintenance/install.php --dbtype sqlite --dbpath ${{ runner.temp }}/sqlite --server http://localhost --scriptpath /w --pass testpass TestWiki Admin
+      run: php core/maintenance/install.php --dbtype sqlite --dbpath ${{ runner.temp }}/sqlite --server http://localhost --scriptpath /w --pass ci-test-wiki-password TestWiki Admin
     - name: Enable extension
       run: |
         echo 'wfLoadExtension( "AuthManagerOAuth" );' >> core/LocalSettings.php
