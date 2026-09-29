@@ -1,5 +1,6 @@
 {
 	"name": "AuthManagerOAuth",
+	"version": "0.3.4",
 	"author": [
 		"Moritz Hedtke"
 	],
