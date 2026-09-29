@@ -23,8 +23,17 @@
 		"phpcs": "phpcs -sp --cache"
 	},
 	"require": {
-		"league/oauth2-client": "^2.7",
-		"psr/http-message": "~1.0.1"
+		"league/oauth2-client": "^2.7"
+	},
+	"replace": {
+		"guzzlehttp/guzzle": "*",
+		"guzzlehttp/promises": "*",
+		"guzzlehttp/psr7": "*",
+		"psr/http-client": "*",
+		"psr/http-factory": "*",
+		"psr/http-message": "*",
+		"ralouphie/getallheaders": "*",
+		"symfony/deprecation-contracts": "*"
 	},
 	"config": {
 		"allow-plugins": {
