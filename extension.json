@@ -14,6 +14,9 @@
 		"MediaWiki\\Extension\\AuthManagerOAuth\\": "src/"
 	},
 	"load_composer_autoloader": true,
+	"TestAutoloadClasses": {
+		"MediaWiki\\Extension\\AuthManagerOAuth\\Tests\\FakeOAuthServer": "tests/FakeOAuthServer.php"
+	},
 	"config": {
 		"AuthManagerOAuthConfig": {
 			"description": "Dictionary of GenericProvider constructor parameters at https://oauth2-client.thephpleague.com/usage/",

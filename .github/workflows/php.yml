@@ -28,6 +28,43 @@ jobs:
       run: composer install
     - name: Run test suite
       run: composer run-script test
+  integration-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mediawiki_branch: [ REL1_43, REL1_46 ]
+    env:
+      MEDIAWIKI_BRANCH: ${{ matrix.mediawiki_branch }}
+    steps:
+    - name: Checkout MediaWiki core
+      uses: actions/checkout@v6
+      with:
+        repository: wikimedia/mediawiki
+        ref: ${{ env.MEDIAWIKI_BRANCH }}
+        path: core
+    - name: Checkout extension into core
+      uses: actions/checkout@v6
+      with:
+        path: core/extensions/AuthManagerOAuth
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: intl, mbstring, xml, sqlite3
+    - name: Install MediaWiki core dependencies
+      run: composer install --no-progress --working-dir=core
+    - name: Install extension dependencies
+      run: composer install --no-progress --working-dir=core/extensions/AuthManagerOAuth
+    - name: Install wiki
+      run: php core/maintenance/install.php --dbtype sqlite --dbpath ${{ runner.temp }}/sqlite --server http://localhost --scriptpath /w --pass testpass TestWiki Admin
+    - name: Enable extension
+      run: |
+        echo 'wfLoadExtension( "AuthManagerOAuth" );' >> core/LocalSettings.php
+    - name: Update database
+      run: php core/maintenance/update.php --quick
+    - name: Run integration tests
+      run: composer --working-dir=core phpunit:entrypoint -- extensions/AuthManagerOAuth/tests/phpunit/
   publish:
     needs: test
     runs-on: ubuntu-latest
