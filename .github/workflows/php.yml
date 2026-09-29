@@ -3,6 +3,7 @@ name: PHP Composer
 on:
   push:
     branches: [ main ]
+    tags: [ '*' ]
   pull_request:
     branches: [ main ]
 
@@ -28,6 +29,43 @@ jobs:
       run: composer install
     - name: Run test suite
       run: composer run-script test
+  integration-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mediawiki_branch: [ REL1_43, REL1_46 ]
+    env:
+      MEDIAWIKI_BRANCH: ${{ matrix.mediawiki_branch }}
+    steps:
+    - name: Checkout MediaWiki core
+      uses: actions/checkout@v6
+      with:
+        repository: wikimedia/mediawiki
+        ref: ${{ env.MEDIAWIKI_BRANCH }}
+        path: core
+    - name: Checkout extension into core
+      uses: actions/checkout@v6
+      with:
+        path: core/extensions/AuthManagerOAuth
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: intl, mbstring, xml, sqlite3
+    - name: Install MediaWiki core dependencies
+      run: composer install --no-progress --working-dir=core
+    - name: Install extension dependencies
+      run: composer install --no-progress --working-dir=core/extensions/AuthManagerOAuth
+    - name: Install wiki
+      run: php core/maintenance/install.php --dbtype sqlite --dbpath ${{ runner.temp }}/sqlite --server http://localhost --scriptpath /w --pass ci-test-wiki-password TestWiki Admin
+    - name: Enable extension
+      run: |
+        echo 'wfLoadExtension( "AuthManagerOAuth" );' >> core/LocalSettings.php
+    - name: Update database
+      run: php core/maintenance/update.php --quick
+    - name: Run integration tests
+      run: composer --working-dir=core phpunit:entrypoint -- extensions/AuthManagerOAuth/tests/phpunit/
   publish:
     needs: test
     runs-on: ubuntu-latest
@@ -40,3 +78,27 @@ jobs:
         name: AuthManagerOAuth
         retention-days: 3
         path: /home/runner/work/AuthManagerOAuth/
+  release:
+    name: Release (tag)
+    needs: [test, integration-test]
+    if: startsWith( github.ref, 'refs/tags/' )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install dependencies
+      run: composer install --no-dev --no-progress
+    - name: Build installable zip
+      run: |
+        mkdir -p build
+        rsync -a --exclude=.git --exclude=.github --exclude=build . build/AuthManagerOAuth/
+        cd build
+        zip -r "${GITHUB_WORKSPACE}/AuthManagerOAuth-${GITHUB_REF_NAME}.zip" AuthManagerOAuth
+    - name: Create GitHub release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: >-
+        gh release create "${{ github.ref_name }}"
+        --verify-tag --generate-notes
+        "${GITHUB_WORKSPACE}/AuthManagerOAuth-${GITHUB_REF_NAME}.zip"
