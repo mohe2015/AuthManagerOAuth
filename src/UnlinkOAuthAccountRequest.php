@@ -44,6 +44,9 @@ class UnlinkOAuthAccountRequest extends ButtonAuthenticationRequest {
 		$this->amoa_remote_user = $amoa_remote_user;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function describeCredentials() {
 		return [
 			"provider" => new \MediaWiki\Language\RawMessage( '$1 OAuth', [ $this->amoa_provider ] ),
