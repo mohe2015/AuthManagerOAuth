@@ -25,7 +25,9 @@ use MediaWiki\Auth\AuthenticationRequest;
 use MediaWiki\Auth\AuthenticationResponse;
 use MediaWiki\MediaWikiServices;
 
-// https://doc.wikimedia.org/mediawiki-core/master/php/classMediaWiki_1_1Auth_1_1AbstractPrimaryAuthenticationProvider.html
+/**
+ * https://doc.wikimedia.org/mediawiki-core/master/php/classMediaWiki_1_1Auth_1_1AbstractPrimaryAuthenticationProvider.html
+ */
 class AuthManagerOAuthPrimaryAuthenticationProvider extends \MediaWiki\Auth\AbstractPrimaryAuthenticationProvider {
 
 	private const AUTHENTICATION_SESSION_DATA_STATE = 'authmanageroauth:state';
