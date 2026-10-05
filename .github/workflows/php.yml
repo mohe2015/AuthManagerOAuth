@@ -14,7 +14,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
     - name: Cache Composer packages
@@ -39,13 +39,13 @@ jobs:
       MEDIAWIKI_BRANCH: ${{ matrix.mediawiki_branch }}
     steps:
     - name: Checkout MediaWiki core
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: wikimedia/mediawiki
         ref: ${{ env.MEDIAWIKI_BRANCH }}
         path: core
     - name: Checkout extension into core
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         path: core/extensions/AuthManagerOAuth
     - name: Setup PHP
@@ -70,7 +70,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install dependencies
       run: composer install --no-dev
     - uses: actions/upload-artifact@v6
@@ -86,7 +86,7 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install dependencies
       run: composer install --no-dev --no-progress
     - name: Build installable zip
